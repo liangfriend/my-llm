@@ -1,0 +1,123 @@
+{
+  "examples": [
+    {
+      "id": "example-classical-1",
+      "input": "床前明月光",
+      "params": {
+        "style": "classical",
+        "context": "tang-poem",
+        "mood": "calm"
+      },
+      "melody": [
+        {
+          "lyrics": "床",
+          "midi": 64,
+          "chronaxie": 128
+        },
+        {
+          "lyrics": "前",
+          "midi": 67,
+          "chronaxie": 128
+        },
+        {
+          "lyrics": "明",
+          "midi": 69,
+          "chronaxie": 128
+        },
+        {
+          "lyrics": "月",
+          "midi": 67,
+          "chronaxie": 256
+        },
+        {
+          "lyrics": "光",
+          "midi": 64,
+          "chronaxie": 96
+        }
+      ]
+    },
+    {
+      "id": "example-folk-1",
+      "input": "抬头望明月",
+      "params": {
+        "style": "folk",
+        "context": "tang-poem",
+        "mood": "gentle"
+      },
+      "melody": [
+        {
+          "lyrics": "抬",
+          "midi": 62,
+          "chronaxie": 128
+        },
+        {
+          "lyrics": "头",
+          "midi": 64,
+          "chronaxie": 128
+        },
+        {
+          "lyrics": "望",
+          "midi": 67,
+          "chronaxie": 128
+        },
+        {
+          "lyrics": "明",
+          "midi": 69,
+          "chronaxie": 256
+        },
+        {
+          "lyrics": "月",
+          "midi": 67,
+          "chronaxie": 96
+        }
+      ]
+    },
+    {
+      "id": "example-pop-1",
+      "input": "余辉落山海",
+      "params": {
+        "style": "pop",
+        "mood": "bright",
+        "tempo": 96
+      },
+      "melody": [
+        {
+          "lyrics": "余",
+          "midi": 65,
+          "chronaxie": 128
+        },
+        {
+          "lyrics": "辉",
+          "midi": 69,
+          "chronaxie": 256
+        },
+        {
+          "lyrics": "落",
+          "midi": 71,
+          "chronaxie": 256
+        },
+        {
+          "lyrics": "山",
+          "midi": 69,
+          "chronaxie": 128
+        },
+        {
+          "lyrics": "海",
+          "midi": 65,
+          "chronaxie": 96
+        }
+      ]
+    },
+    {
+      "params": {
+        "style": "folk"
+      },
+      "melody": [
+        {
+          "midi": 62,
+          "chronaxie": 60
+        }
+      ]
+    }
+  ]
+}
