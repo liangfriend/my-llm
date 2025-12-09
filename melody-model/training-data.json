@@ -108,16 +108,6 @@
         }
       ]
     },
-    {
-      "params": {
-        "style": "folk"
-      },
-      "melody": [
-        {
-          "midi": 62,
-          "chronaxie": 60
-        }
-      ]
-    }
+
   ]
 }
