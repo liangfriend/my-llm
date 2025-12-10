@@ -7,6 +7,7 @@ export interface GenerateOptions {
     seedMelody?: RawNote[];
     length?: unknown;
     params?: Record<string, unknown>;
+    totalChronaxie?: unknown;
 }
 // 生成结果
 export interface GenerateResult {

@@ -145,6 +145,9 @@ p {
   gap: 12px;
   grid-template-columns: 2fr 1fr;
 }
+.form-grid.three-cols {
+  grid-template-columns: 2fr 1fr 1fr;
+}
 
 label {
   font-size: 14px;

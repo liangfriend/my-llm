@@ -7,7 +7,7 @@ export function validateIncomingMelody(melody: unknown): ValidationResult {
     return { error: 'melody must be a non-empty array' };
   }
   const sanitized = (melody as RawNote[]).map(note => sanitizeNote(note));
-  const outOfRange = sanitized.find(n => n.midi < 1 || n.midi > 128);
+  const outOfRange = sanitized.find(n => !n.rest && (n.midi < 1 || n.midi > 128));
   if (outOfRange) {
     return { error: 'midi values must be between 1 and 128' };
   }

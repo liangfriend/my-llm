@@ -1,5 +1,5 @@
 ﻿import express, { Request, Response } from 'express';
-
+const cors = require('cors');
 import { generateMelody } from './lib/generator';
 import { validateIncomingMelody, ValidationResult } from './lib/validation';
 import { loadTrainingData, saveTrainingData } from './lib/storage';
@@ -8,7 +8,9 @@ import {GenerateOptions, GenerateResult} from "./type";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
-
+app.use(cors({
+    origin: 'http://localhost:9999'  // 明确指定前端地址
+}));
 app.use(express.json({ limit: '1mb' }));
 // 连接测试接口
 app.get('/', (_req: Request, res: Response) => {
@@ -21,14 +23,14 @@ app.get('/', (_req: Request, res: Response) => {
 app.post(
   '/melody/generate',
   (req: Request<unknown, unknown, GenerateOptions>, res: Response) => {
-    const { text, seedMelody, length, params } = req.body || {};
+    const { text, seedMelody, length, params, totalChronaxie } = req.body || {};
     if (text !== undefined && typeof text !== 'string') {
       return res.status(400).json({ error: 'text must be a string when provided' });
     }
     if (seedMelody !== undefined && !Array.isArray(seedMelody)) {
       return res.status(400).json({ error: 'seedMelody must be an array when provided' });
     }
-    const result: GenerateResult = generateMelody({ text, seedMelody, length, params });
+    const result: GenerateResult = generateMelody({ text, seedMelody, length, params, totalChronaxie });
     return res.json({
       melody: result.melody,
       meta: {

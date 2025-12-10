@@ -10,6 +10,7 @@ const apiBase = ref('/api');
 
 const text = ref('');
 const length = ref(8);
+const totalChronaxieNumber = ref(null);
 const seedMelody = ref([{ midi: 60, chronaxie: 4, lyrics: '' }]);
 const params = ref([
   { key: 'style', value: 'classical' },
@@ -101,6 +102,11 @@ async function runGenerate() {
     if (text.value.trim()) payload.text = text.value;
     if (notes.length) payload.seedMelody = notes;
     if (Number(length.value) > 0) payload.length = Number(length.value);
+    const totalChronaxie = Number(totalChronaxieNumber.value);
+    if (Number.isFinite(totalChronaxie) && totalChronaxie > 0) {
+      payload.totalChronaxieNumber = totalChronaxie;
+      payload.totalChronaxie = totalChronaxie;
+    }
     if (Object.keys(paramsObj).length) payload.params = paramsObj;
     generateResult.value = await postJson('/melody/generate', payload);
   } catch (err) {
@@ -201,7 +207,7 @@ function play(mdelody) {
           </button>
         </div>
 
-        <div class="form-grid">
+        <div class="form-grid three-cols">
           <label>
             Lyrics / 文本（可选）
             <textarea
@@ -213,6 +219,15 @@ function play(mdelody) {
           <label>
             目标长度（可选）
             <input v-model.number="length" type="number" min="1" placeholder="8" />
+          </label>
+          <label>
+            totalChronaxieNumber (optional)
+            <input
+              v-model.number="totalChronaxieNumber"
+              type="number"
+              min="1"
+              placeholder="64"
+            />
           </label>
         </div>
 
