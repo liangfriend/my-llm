@@ -16,6 +16,7 @@ export interface GenerateResult {
     melody: Melody;
     usedExamples: number;
     targetLength: number;
+    warnings?: string[];
 }
 // 训练样本
 export interface TrainingExample {

@@ -348,6 +348,20 @@ button.danger {
   margin-top: 8px;
 }
 
+.warning {
+  color: #b45309;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.warning-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .success {
   color: #047857;
   background: #ecfdf3;

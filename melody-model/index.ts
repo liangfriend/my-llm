@@ -45,6 +45,7 @@ app.post(
         usedExamples: result.usedExamples,
         targetLength: result.targetLength,
         paramsUsed: params || {},
+        warnings: result.warnings || [],
       },
     });
   },

@@ -299,6 +299,11 @@ function play(mdelody) {
             <span class="pill light">usedExamples: {{ generateResult.meta?.usedExamples }}</span>
             <span class="pill light">targetLength: {{ generateResult.meta?.targetLength }}</span>
           </div>
+          <div v-if="generateResult.meta?.warnings?.length" class="warning-list">
+            <p v-for="(w, idx) in generateResult.meta.warnings" :key="idx" class="warning">
+              ⚠ {{ w }}
+            </p>
+          </div>
           <div class="note-grid note-grid-head">
             <span>midi</span>
             <span>chronaxie</span>

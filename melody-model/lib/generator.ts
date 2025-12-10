@@ -92,6 +92,7 @@ export function fillNote(
   }
     // 传入数据没有时值且当前时值超出累加器的时候的情况下，对目标时值和获取的时值取最小值
   if (!hasChronaxieOverride && options.overExpected !== undefined ) {
+    // TODO 目前，即使没有剩余时值，也会返回128
     chronaxie = Math.min(chronaxie, normalizeChronaxie(options.targetChronaxie));
   }
 
@@ -154,6 +155,7 @@ export function generateMelody({
   const targetLength = resolveTargetLength(length, chars.length, seed.length);
   const melody: Melody = [];
   let prevMidi: number | null = null;
+  const warnings: string[] = [];
     // 约束总时值
   const totalChronaxieNumber = isPositiveNumber(totalChronaxie)
     ? Math.round(Number(totalChronaxie))
@@ -167,6 +169,16 @@ export function generateMelody({
       : null;
     // 累加时值
   let accumulatedChronaxie = 0;
+
+  if (totalChronaxieNumber !== null && targetLength > seed.length && seed.length) {
+    const seedChronaxieTotal = seed.reduce((sum, note) => {
+      const val = Number(note.chronaxie);
+      return Number.isFinite(val) ? sum + normalizeChronaxie(val) : sum;
+    }, 0);
+    if (seedChronaxieTotal > totalChronaxieNumber) {
+      warnings.push('种子数据时值比总时值还多，老弟，你这不对');
+    }
+  }
 
   for (let i = 0; i < targetLength; i += 1) {
     const lyric = chars[i];
@@ -225,5 +237,5 @@ export function generateMelody({
       ? adjustMelodyToTotalChronaxie(melody, totalChronaxieNumber)
       : melody;
 
-  return { melody: finalMelody, usedExamples: model.usedExamples, targetLength };
+  return { melody: finalMelody, usedExamples: model.usedExamples, targetLength, warnings };
 }
