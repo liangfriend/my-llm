@@ -1,4 +1,4 @@
-﻿import { buildProbabilityModel, ProbabilityModel } from './probabilityModel';
+﻿import { buildProbabilityModel, ProbabilityModel, MidiRange } from './probabilityModel';
 import { loadTrainingData } from './storage';
 import {
   clampMidi,
@@ -10,17 +10,58 @@ import {
   SanitizedNote,
   MIN_CHRONAXIE,
   MAX_CHRONAXIE,
+  recommendMidiReplace,
 } from './note';
 import { GenerateOptions, GenerateResult } from '../type';
 
 interface FillNoteOptions {
   targetChronaxie?: number;
   overExpected?: boolean;
+  midiRange?: MidiRange;
 }
 // 是否是正数
 function isPositiveNumber(value: unknown): value is number {
   const num = Number(value);
   return Number.isFinite(num) && num > 0;
+}
+
+function normalizeMidiBound(value: unknown): number | null {
+  const num = Math.round(Number(value));
+  if (!Number.isFinite(num)) return null;
+  return Math.min(128, Math.max(1, num));
+}
+
+function resolveMidiRange(minMidi: unknown, maxMidi: unknown): MidiRange {
+  let min = normalizeMidiBound(minMidi) ?? 1;
+  let max = normalizeMidiBound(maxMidi) ?? 128;
+  if (min > max) {
+    [min, max] = [max, min];
+  }
+  return { min, max };
+}
+// 检索note,使其保持在midi范围内
+function keepMidiInRange(note: SanitizedNote, melody: Melody, range: MidiRange): SanitizedNote {
+  if (note.rest) return note;
+  const { min, max } = range;
+  const inRange = note.midi >= min && note.midi <= max;
+  if (inRange) return note;
+
+  const tempNotes = [...melody, { midi: note.midi }];
+  const recommended = recommendMidiReplace(melody.length, tempNotes) || [];
+  const boundedCandidate = recommended.find(m => m >= min && m <= max);
+
+  if (boundedCandidate !== undefined) {
+    return { ...note, midi: boundedCandidate };
+  }
+
+  const prev = melody[melody.length - 1];
+  if (prev && !prev.rest) {
+    const snappedPrev = Math.min(max, Math.max(min, prev.midi));
+    return { ...note, midi: snappedPrev };
+  }
+
+  const clamped = Math.min(max, Math.max(min, note.midi));
+  return { ...note, midi: clamped };
 }
 
 // 填充音符
@@ -33,7 +74,7 @@ export function fillNote(
 ): SanitizedNote {
   const note: RawNote = { ...seedNote };
   if (lyric !== undefined) note.lyrics = lyric;
-  const sampledMidi = model.sampleMidi(prevMidi);
+  const sampledMidi = model.sampleMidi(prevMidi, options.midiRange);
   const midi = clampMidi(note.midi);
   note.midi = midi ?? sampledMidi;
     // 是否有时值
@@ -98,6 +139,8 @@ export function generateMelody({
   length,
   params,
   totalChronaxie,
+  minMidi,
+  maxMidi,
 }: GenerateOptions): GenerateResult {
     // 加载训练样本数据
   const data = loadTrainingData();
@@ -115,6 +158,8 @@ export function generateMelody({
   const totalChronaxieNumber = isPositiveNumber(totalChronaxie)
     ? Math.round(Number(totalChronaxie))
     : null;
+  // 时值范围
+  const midiRange = resolveMidiRange(minMidi, maxMidi);
   // 每个音符的标准时值
   const standardChronaxie =
     totalChronaxieNumber !== null && targetLength > 0
@@ -130,17 +175,19 @@ export function generateMelody({
     const expectedBefore = standardChronaxie !== null ? standardChronaxie * i : null;
     // 是否超出预期
     const overExpected = expectedBefore !== null && accumulatedChronaxie > expectedBefore;
-    // 填充音符
+    // 填充音符，内部会对midi范围进行一次过滤
     const filled = fillNote(seedNote, lyric, model, prevMidi, {
       targetChronaxie: standardChronaxie !== null ? standardChronaxie : undefined,
-        overExpected: overExpected && standardChronaxie !== null
+      overExpected: overExpected && standardChronaxie !== null,
+      midiRange,
     });
-
-    melody.push(filled);
+    // 如果fillNote对范围过滤失败（样本中不存在范围内midi），改为生成范围内推荐音符
+    const bounded = keepMidiInRange(filled, melody, midiRange);
+    melody.push(bounded);
     // 对时值进行累加
-    accumulatedChronaxie += filled.chronaxie;
+    accumulatedChronaxie += bounded.chronaxie;
     // 赋值prevMidi
-    if (!filled.rest) prevMidi = filled.midi;
+    if (!bounded.rest) prevMidi = bounded.midi;
     // 当设定了均分的目标时值时，如果当前累计时值落后，尝试在预算内插入休止符补齐节奏
     if (standardChronaxie !== null) {
       const totalBudget = totalChronaxieNumber!;

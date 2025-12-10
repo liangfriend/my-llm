@@ -11,6 +11,8 @@ const apiBase = ref('/api');
 const text = ref('');
 const length = ref(8);
 const totalChronaxieNumber = ref(null);
+const minMidi = ref(null);
+const maxMidi = ref(null);
 const seedMelody = ref([{ midi: 60, chronaxie: 4, lyrics: '' }]);
 const params = ref([
   { key: 'style', value: 'classical' },
@@ -106,6 +108,14 @@ async function runGenerate() {
     if (Number.isFinite(totalChronaxie) && totalChronaxie > 0) {
       payload.totalChronaxieNumber = totalChronaxie;
       payload.totalChronaxie = totalChronaxie;
+    }
+    const minMidiNumber = Number(minMidi.value);
+    if (Number.isFinite(minMidiNumber) && minMidiNumber > 0) {
+      payload.minMidi = Math.round(minMidiNumber);
+    }
+    const maxMidiNumber = Number(maxMidi.value);
+    if (Number.isFinite(maxMidiNumber) && maxMidiNumber > 0) {
+      payload.maxMidi = Math.round(maxMidiNumber);
     }
     if (Object.keys(paramsObj).length) payload.params = paramsObj;
     generateResult.value = await postJson('/melody/generate', payload);
@@ -227,6 +237,26 @@ function play(mdelody) {
               type="number"
               min="1"
               placeholder="64"
+            />
+          </label>
+          <label>
+            minMidi (可选)
+            <input
+              v-model.number="minMidi"
+              type="number"
+              min="1"
+              max="128"
+              placeholder="1"
+            />
+          </label>
+          <label>
+            maxMidi (可选)
+            <input
+              v-model.number="maxMidi"
+              type="number"
+              min="1"
+              max="128"
+              placeholder="128"
             />
           </label>
         </div>

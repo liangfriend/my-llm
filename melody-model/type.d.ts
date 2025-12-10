@@ -8,6 +8,8 @@ export interface GenerateOptions {
     length?: unknown;
     params?: Record<string, unknown>;
     totalChronaxie?: unknown;
+    minMidi?: unknown;
+    maxMidi?: unknown;
 }
 // 生成结果
 export interface GenerateResult {

@@ -23,14 +23,22 @@ app.get('/', (_req: Request, res: Response) => {
 app.post(
   '/melody/generate',
   (req: Request<unknown, unknown, GenerateOptions>, res: Response) => {
-    const { text, seedMelody, length, params, totalChronaxie } = req.body || {};
+    const { text, seedMelody, length, params, totalChronaxie, minMidi, maxMidi } = req.body || {};
     if (text !== undefined && typeof text !== 'string') {
       return res.status(400).json({ error: 'text must be a string when provided' });
     }
     if (seedMelody !== undefined && !Array.isArray(seedMelody)) {
       return res.status(400).json({ error: 'seedMelody must be an array when provided' });
     }
-    const result: GenerateResult = generateMelody({ text, seedMelody, length, params, totalChronaxie });
+    const result: GenerateResult = generateMelody({
+      text,
+      seedMelody,
+      length,
+      params,
+      totalChronaxie,
+      minMidi,
+      maxMidi,
+    });
     return res.json({
       melody: result.melody,
       meta: {

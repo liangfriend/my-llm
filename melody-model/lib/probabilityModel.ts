@@ -3,8 +3,13 @@ import { TrainingExample } from '../type';
 
 type CountMap = Map<number, number>;
 
+export interface MidiRange {
+  min: number;
+  max: number;
+}
+
 export interface ProbabilityModel {
-  sampleMidi: (prevMidi: number | null) => number;
+  sampleMidi: (prevMidi: number | null, range?: MidiRange) => number;
   sampleChronaxie: (prevMidi: number | null) => number;
   usedExamples: number;
 }
@@ -15,13 +20,24 @@ function addCount(map: CountMap, key: number, weight: number): void {
 }
 
 // 通过概率获取数据
-function sampleFromMap(countMap: CountMap, fallback: number | null = null): number | null {
-  const total = Array.from(countMap.values()).reduce((sum, count) => sum + count, 0);
+function sampleFromMap(
+  countMap: CountMap,
+  fallback: number | null = null,
+  range?: MidiRange,
+): number | null {
+  let entries = Array.from(countMap.entries());
+  // 对样本进行范围过滤
+  if (range) {
+    entries = entries.filter(([value]) => value >= range.min && value <= range.max);
+  }
+  if (!entries.length) return fallback;
+
+  const total = entries.reduce((sum, [, count]) => sum + count, 0);
   if (total <= 0) return fallback;
 
   let r = Math.random() * total;
   // TODO 这里后续可能要优化，概率低的就不要了，根据countMap的长度，要对countMap进行过滤
-  for (const [value, count] of countMap.entries()) {
+  for (const [value, count] of entries) {
     r -= count;
     if (r <= 0) return Number(value);
   }
@@ -111,11 +127,20 @@ export function buildProbabilityModel(
 
   const fallbackMidi = midiCounts.size ? sampleFromMap(midiCounts, 60) ?? 60 : 60;
   // 通过上一个音符进行概率计算拿到现在的音符
-  function sampleMidi(prevMidi: number | null): number {
+  function sampleMidi(prevMidi: number | null, range?: MidiRange): number {
     const transitions = prevMidi !== null ? transitionMidiCounts.get(prevMidi) : undefined;
-    if (transitions && transitions.size) return sampleFromMap(transitions, fallbackMidi) ?? fallbackMidi;
-    if (midiCounts.size) return sampleFromMap(midiCounts, fallbackMidi) ?? fallbackMidi;
-    return fallbackMidi;
+    const fallbackInRange = range
+      ? Math.min(range.max, Math.max(range.min, fallbackMidi))
+      : fallbackMidi;
+
+    const trySample = (map?: CountMap): number | null => {
+      if (!map || !map.size) return null;
+      return sampleFromMap(map, fallbackInRange, range);
+    };
+
+    let sampled = trySample(transitions);
+    if (sampled === null) sampled = trySample(midiCounts);
+    return sampled ?? fallbackInRange;
   }
 
   const fallbackChronaxie = chronaxieCounts.size
@@ -132,4 +157,3 @@ export function buildProbabilityModel(
 
   return { sampleMidi, sampleChronaxie, usedExamples: examples.length };
 }
-
