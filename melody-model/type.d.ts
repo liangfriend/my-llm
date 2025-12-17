@@ -10,6 +10,8 @@ export interface GenerateOptions {
     totalChronaxie?: unknown;
     minMidi?: unknown;
     maxMidi?: unknown;
+    minChronaxie?: unknown;
+    minChronaxieInterval?: unknown;
 }
 // 生成结果
 export interface GenerateResult {

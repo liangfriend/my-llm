@@ -11,6 +11,8 @@ const apiBase = ref('/api');
 const text = ref('');
 const length = ref(8);
 const totalChronaxieNumber = ref(null);
+const minChronaxie = ref(null);
+const minChronaxieInterval = ref(null);
 const minMidi = ref(null);
 const maxMidi = ref(null);
 const seedMelody = ref([{ midi: 60, chronaxie: 4, lyrics: '' }]);
@@ -108,6 +110,14 @@ async function runGenerate() {
     if (Number.isFinite(totalChronaxie) && totalChronaxie > 0) {
       payload.totalChronaxieNumber = totalChronaxie;
       payload.totalChronaxie = totalChronaxie;
+    }
+    const minChron = Number(minChronaxie.value);
+    if (Number.isFinite(minChron) && minChron > 0) {
+      payload.minChronaxie = Math.round(minChron);
+    }
+    const minChronStep = Number(minChronaxieInterval.value);
+    if (Number.isFinite(minChronStep) && minChronStep > 0) {
+      payload.minChronaxieInterval = Math.round(minChronStep);
     }
     const minMidiNumber = Number(minMidi.value);
     if (Number.isFinite(minMidiNumber) && minMidiNumber > 0) {
@@ -217,7 +227,7 @@ function play(mdelody) {
           </button>
         </div>
 
-        <div class="form-grid three-cols">
+        <div class="form-grid multi-cols">
           <label>
             Lyrics / 文本（可选）
             <textarea
@@ -237,6 +247,24 @@ function play(mdelody) {
               type="number"
               min="1"
               placeholder="64"
+            />
+          </label>
+          <label>
+            minChronaxie (可选，最小时值)
+            <input
+              v-model.number="minChronaxie"
+              type="number"
+              min="1"
+              placeholder="32"
+            />
+          </label>
+          <label>
+            minChronaxieInterval (可选，最小间隔)
+            <input
+              v-model.number="minChronaxieInterval"
+              type="number"
+              min="1"
+              placeholder="1"
             />
           </label>
           <label>

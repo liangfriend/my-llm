@@ -15,14 +15,40 @@ export interface SanitizedNote {
 }
 export type Melody = SanitizedNote[];
 export const DEFAULT_CHRONAXIE = 128;
-export const MIN_CHRONAXIE = 32;
 export const MAX_CHRONAXIE = 512;
+export const DEFAULT_MIN_CHRONAXIE = 32;
+export const DEFAULT_CHRONAXIE_INTERVAL = 1;
+
+export interface ChronaxieRules {
+  minChronaxie: number;
+  maxChronaxie: number;
+  interval: number;
+}
 
 // 标准音符时值表（如 32=16 分，48=16 分附点），用于合法性校验
 const BASE_CHRONAXIE_UNITS = [512, 256, 128, 64, 32, 16, 8, 4, 2, 1];
 const MAX_DOTS = 4;
 
-function buildStandardChronaxieValues(): number[] {
+export function resolveChronaxieRules(
+  minChronaxie: unknown,
+  interval: unknown,
+): ChronaxieRules {
+  const parsedMin = Math.round(Number(minChronaxie));
+  const parsedInterval = Math.round(Number(interval));
+  const min =
+    Number.isFinite(parsedMin) && parsedMin > 0 ? parsedMin : DEFAULT_MIN_CHRONAXIE;
+  const step =
+    Number.isFinite(parsedInterval) && parsedInterval > 0
+      ? parsedInterval
+      : DEFAULT_CHRONAXIE_INTERVAL;
+  return {
+    minChronaxie: min,
+    maxChronaxie: MAX_CHRONAXIE,
+    interval: step,
+  };
+}
+
+function buildStandardChronaxieValues(rules: ChronaxieRules): number[] {
   const values = new Set<number>();
   BASE_CHRONAXIE_UNITS.forEach(base => {
     for (let dots = 0; dots <= MAX_DOTS; dots += 1) {
@@ -33,18 +59,30 @@ function buildStandardChronaxieValues(): number[] {
       }
     }
   });
-  const sorted = Array.from(values).filter(v => v >= MIN_CHRONAXIE && v <= MAX_CHRONAXIE);
-  return sorted.sort((a, b) => a - b);
+  const sorted = Array.from(values)
+    .filter(
+      v => v >= rules.minChronaxie && v <= rules.maxChronaxie && v % rules.interval === 0,
+    )
+    .sort((a, b) => a - b);
+  return sorted.length ? sorted : [rules.minChronaxie];
 }
 
-export const STANDARD_CHRONAXIE_VALUES = buildStandardChronaxieValues();
+export const STANDARD_CHRONAXIE_VALUES = buildStandardChronaxieValues(
+  resolveChronaxieRules(undefined, undefined),
+);
 
-function snapChronaxieToStandard(value: number): number {
-  if (STANDARD_CHRONAXIE_VALUES.includes(value)) return value;
-  let closest = STANDARD_CHRONAXIE_VALUES[0];
+export function getStandardChronaxieValues(rules: ChronaxieRules): number[] {
+  return buildStandardChronaxieValues(rules);
+}
+
+// 防止不标准音符出现，如果出现了，则修改为最近的标准音符
+function snapChronaxieToStandard(value: number, rules: ChronaxieRules): number {
+  const values = getStandardChronaxieValues(rules);
+  if (values.includes(value)) return value;
+  let closest = values[0];
   let smallestDiff = Math.abs(value - closest);
-  for (let i = 1; i < STANDARD_CHRONAXIE_VALUES.length; i += 1) {
-    const candidate = STANDARD_CHRONAXIE_VALUES[i];
+  for (let i = 1; i < values.length; i += 1) {
+    const candidate = values[i];
     const diff = Math.abs(value - candidate);
     if (diff < smallestDiff) {
       closest = candidate;
@@ -61,17 +99,24 @@ export function clampMidi(midi: unknown): number | null {
   return Math.min(128, Math.max(1, Math.round(num)));
 }
 // 标准化Chronaxie
-export function normalizeChronaxie(value: unknown): number {
+export function normalizeChronaxie(
+  value: unknown,
+  rules: ChronaxieRules = resolveChronaxieRules(undefined, undefined),
+): number {
   const num = Number(value);
   if (!Number.isFinite(num) || num <= 0) return DEFAULT_CHRONAXIE;
-  const clamped = Math.min(MAX_CHRONAXIE, Math.max(MIN_CHRONAXIE, Math.round(num)));
-  return snapChronaxieToStandard(clamped);
+  const clamped = Math.min(rules.maxChronaxie, Math.max(rules.minChronaxie, Math.round(num)));
+  return snapChronaxieToStandard(clamped, rules);
 }
 // 安全的解构note
-export function sanitizeNote(note: RawNote = {}, lyric?: string): SanitizedNote {
+export function sanitizeNote(
+  note: RawNote = {},
+  lyric?: string,
+  rules: ChronaxieRules = resolveChronaxieRules(undefined, undefined),
+): SanitizedNote {
   const rest = note.rest === true;
   const midi = rest ? 0 : clampMidi(note.midi) ?? 60;
-  const chronaxie = normalizeChronaxie(note.chronaxie);
+  const chronaxie = normalizeChronaxie(note.chronaxie, rules);
   const lyrics = rest ? undefined : (lyric !== undefined ? lyric : note.lyrics);
   return { midi, chronaxie, lyrics, rest };
 }

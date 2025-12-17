@@ -8,9 +8,10 @@ import {GenerateOptions, GenerateResult} from "./type";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
-app.use(cors({
-    origin: 'http://localhost:9999'  // 明确指定前端地址
-}));
+// {
+//     origin: 'http://localhost:9080'  // 明确指定前端地址
+// }
+app.use(cors()); // 不设置跨域限制
 app.use(express.json({ limit: '1mb' }));
 // 连接测试接口
 app.get('/', (_req: Request, res: Response) => {
@@ -23,7 +24,17 @@ app.get('/', (_req: Request, res: Response) => {
 app.post(
   '/melody/generate',
   (req: Request<unknown, unknown, GenerateOptions>, res: Response) => {
-    const { text, seedMelody, length, params, totalChronaxie, minMidi, maxMidi } = req.body || {};
+    const {
+      text,
+      seedMelody,
+      length,
+      params,
+      totalChronaxie,
+      minMidi,
+      maxMidi,
+      minChronaxie,
+      minChronaxieInterval,
+    } = req.body || {};
     if (text !== undefined && typeof text !== 'string') {
       return res.status(400).json({ error: 'text must be a string when provided' });
     }
@@ -38,6 +49,8 @@ app.post(
       totalChronaxie,
       minMidi,
       maxMidi,
+      minChronaxie,
+      minChronaxieInterval,
     });
     return res.json({
       melody: result.melody,
