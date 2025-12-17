@@ -17,7 +17,7 @@ app.use(express.json({ limit: '1mb' }));
 // 连接测试接口
 app.get('/melody/test', (_req: Request, res: Response) => {
     logger.info(`Server listening on port ${PORT}`);
-    console.log('打印',res)
+    console.log('打印')
   res.json({text:'接口访问成功'});
 });
 
