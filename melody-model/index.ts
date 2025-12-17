@@ -65,7 +65,7 @@ app.post(
 );
 // 训练接口
 app.post(
-  '/train/example',
+  '/melody/train',
   (
     req: Request<unknown, unknown, { text?: string; melody?: RawNote[]; params?: Record<string, unknown> }>,
     res: Response,
