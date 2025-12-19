@@ -8,6 +8,8 @@ import logger from "./logger";
 // 保存训练数据
 export function loadTrainingData(): TrainingData {
   try {
+      console.log('样本路径',DATA_FILE)
+      logger.log('样本路径',DATA_FILE)
     const content = fs.readFileSync(DATA_FILE, 'utf8');
     const data: unknown = JSON.parse(content);
       console.log('样本数据',data)

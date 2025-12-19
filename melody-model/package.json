@@ -6,7 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node index.ts",
     "model-dev": "nodemon --watch . --ext ts,json --exec ts-node index.ts",
-    "build": "tsc"
+    "build": "tsc && node scripts/copy-assets.js"
   },
   "keywords": [],
   "author": "",
