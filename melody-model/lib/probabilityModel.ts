@@ -44,7 +44,7 @@ function sampleFromMap(
   return fallback;
 }
 
-// 计算权重
+// 计算标签权重
 export function similarityScore(
   exampleParams: Record<string, unknown> = {},
   requestParams: Record<string, unknown> = {},
@@ -78,25 +78,30 @@ export function buildProbabilityModel(
   examples: TrainingExample[] = [],
   requestParams: Record<string, unknown> = {},
 ): ProbabilityModel {
+  // 音符的midi权重表：midi:weight  这个是备选方案，正常音符使用transitionMidiCounts判断midi,如果没有perv音符或其他情况才用这个
   const midiCounts: CountMap = new Map();
+  // 音符的下一个音符midi权重， midi:CountMap 这个还有点意义，利用了上文
   const transitionMidiCounts: Map<number, CountMap> = new Map();
+  // 音符的下一个音符时值权重， chronaxie:CountMap 同上，备选方案
   const transitionChronaxieCounts: Map<number, CountMap> = new Map();
+  // 音符的时值权重表，chronaxie：weight
   const chronaxieCounts: CountMap = new Map();
 
   // 遍历所有样本数据
   examples.forEach(example => {
     const melody: RawNote[] = Array.isArray(example.melody)
       ? (example.melody as RawNote[])
-      : Array.isArray(example.output)
-        ? (example.output as RawNote[])
-        : [];
+      : [];
+    // 标签权重
     const weight = similarityScore(example.params || {}, requestParams);
     let prevMidi: number | null = null;
 
     // 遍历所有旋律
     melody.forEach(note => {
       if (note.rest === true) {
+        // 时值要经过标准化
         const restChronaxie = normalizeChronaxie(note.chronaxie);
+        // 给该midi加权
         addCount(chronaxieCounts, restChronaxie, weight);
         return;
       }

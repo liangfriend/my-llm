@@ -22,9 +22,11 @@ export interface GenerateResult {
 }
 // 训练样本
 export interface TrainingExample {
+  // 输入歌词
     input?: string;
-    output?: RawNote[];
+    // 输出旋律
     melody?: RawNote[];
+    // 标签
     params?: Record<string, unknown>;
 }
 // 训练数据

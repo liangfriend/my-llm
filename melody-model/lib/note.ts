@@ -48,7 +48,8 @@ export function resolveChronaxieRules(
   };
 }
 
-function buildStandardChronaxieValues(rules: ChronaxieRules): number[] {
+// 获取所有允许的时值数组
+export function getStandardChronaxieValues(rules: ChronaxieRules): number[] {
   const values = new Set<number>();
   BASE_CHRONAXIE_UNITS.forEach(base => {
     for (let dots = 0; dots <= MAX_DOTS; dots += 1) {
@@ -60,37 +61,15 @@ function buildStandardChronaxieValues(rules: ChronaxieRules): number[] {
     }
   });
   const sorted = Array.from(values)
-    .filter(
-      v => v >= rules.minChronaxie && v <= rules.maxChronaxie && v % rules.interval === 0,
-    )
-    .sort((a, b) => a - b);
+  .filter(
+    v => v >= rules.minChronaxie && v <= rules.maxChronaxie && v % rules.interval === 0,
+  )
+  .sort((a, b) => a - b);
   return sorted.length ? sorted : [rules.minChronaxie];
 }
 
-export const STANDARD_CHRONAXIE_VALUES = buildStandardChronaxieValues(
-  resolveChronaxieRules(undefined, undefined),
-);
 
-export function getStandardChronaxieValues(rules: ChronaxieRules): number[] {
-  return buildStandardChronaxieValues(rules);
-}
 
-// 防止不标准音符出现，如果出现了，则修改为最近的标准音符
-function snapChronaxieToStandard(value: number, rules: ChronaxieRules): number {
-  const values = getStandardChronaxieValues(rules);
-  if (values.includes(value)) return value;
-  let closest = values[0];
-  let smallestDiff = Math.abs(value - closest);
-  for (let i = 1; i < values.length; i += 1) {
-    const candidate = values[i];
-    const diff = Math.abs(value - candidate);
-    if (diff < smallestDiff) {
-      closest = candidate;
-      smallestDiff = diff;
-    }
-  }
-  return closest;
-}
 
 // 约束midi
 export function clampMidi(midi: unknown): number | null {
@@ -98,15 +77,34 @@ export function clampMidi(midi: unknown): number | null {
   if (!Number.isFinite(num)) return null;
   return Math.min(128, Math.max(1, Math.round(num)));
 }
-// 标准化Chronaxie
+// 标准化时值，因为minChronaxie,minChronaxieInterval等参数限制，有些时值是不能用的
 export function normalizeChronaxie(
   value: unknown,
   rules: ChronaxieRules = resolveChronaxieRules(undefined, undefined),
 ): number {
   const num = Number(value);
   if (!Number.isFinite(num) || num <= 0) return DEFAULT_CHRONAXIE;
+  //
   const clamped = Math.min(rules.maxChronaxie, Math.max(rules.minChronaxie, Math.round(num)));
-  return snapChronaxieToStandard(clamped, rules);
+  // 获取距离标准时值最近的时值
+
+  // 获取所有允许的音符时值
+  const values = getStandardChronaxieValues(rules);
+  // 如果包含了当前时值，直接返回
+  if (values.includes(clamped)) return clamped;
+  let closest = values[0];
+  // 防止不标准音符出现，如果出现了，则修改为最近的标准音符
+  let smallestDiff = Math.abs(clamped - closest);
+  // 获取距离标准时值最近的那个时值
+  for (let i = 1; i < values.length; i += 1) {
+    const candidate = values[i];
+    const diff = Math.abs(clamped - candidate);
+    if (diff < smallestDiff) {
+      closest = candidate;
+      smallestDiff = diff;
+    }
+  }
+  return closest;
 }
 // 安全的解构note
 export function sanitizeNote(

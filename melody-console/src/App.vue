@@ -188,7 +188,7 @@ function play(mdelody) {
     const player = playerManager.add('test', toneSeq, {
         instrument: InstrumentEnum.acoustic_grand_piano,
     })
-    playerManager.play() 8
+    playerManager.play()
 }
 </script>
 

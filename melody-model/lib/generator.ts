@@ -250,7 +250,7 @@ export function generateMelody({
     );
     accumulatedChronaxie += added;
   }
-    // 如果休止富添加不了，说明还剩下很小的时值，并入最后一个音符
+    // 如果休止符添加不了，说明还剩下很小的时值，并入最后一个音符
   const finalMelody =
     totalChronaxieNumber !== null && melody.length
       ? adjustMelodyToTotalChronaxie(melody, totalChronaxieNumber, chronaxieRules)
