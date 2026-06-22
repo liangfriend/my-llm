@@ -3,8 +3,7 @@ const cors = require('cors');
 import { generateMelody } from './lib/generator';
 import { validateIncomingMelody, ValidationResult } from './lib/validation';
 import { loadTrainingData, saveTrainingData } from './lib/storage';
-import { RawNote } from './lib/note';
-import {GenerateOptions, GenerateResult} from "./type";
+import {GenerateOptions, GenerateResult, RawNote} from "./type";
 import logger from "./lib/logger";
 
 const app = express();

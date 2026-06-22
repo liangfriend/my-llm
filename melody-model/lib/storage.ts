@@ -1,6 +1,5 @@
 ﻿import fs from 'fs';
 import { DATA_FILE } from './constants';
-import { RawNote } from './note';
 import {TrainingData} from "../type";
 import logger from "./logger";
 

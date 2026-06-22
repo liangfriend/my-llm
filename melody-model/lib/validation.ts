@@ -1,4 +1,5 @@
-﻿import { sanitizeNote, SanitizedNote, RawNote } from './note';
+﻿import { sanitizeNote } from './note';
+import {RawNote, SanitizedNote} from "../type";
 // 验证旋律是否合法
 export type ValidationResult = { error: string } | { melody: SanitizedNote[] };
 

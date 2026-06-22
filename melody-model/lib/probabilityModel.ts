@@ -1,5 +1,5 @@
-﻿import { clampMidi, normalizeChronaxie, RawNote, DEFAULT_CHRONAXIE } from './note';
-import { TrainingExample } from '../type';
+﻿import { clampMidi, normalizeChronaxie, DEFAULT_CHRONAXIE } from './note';
+import {RawNote, TrainingExample} from '../type';
 
 type CountMap = Map<number, number>;
 

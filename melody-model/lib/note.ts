@@ -1,19 +1,7 @@
 ﻿import { DEFAULT_LENGTH } from './constants';
+import {RawNote, SanitizedNote} from "../type";
 
-export interface RawNote {
-  midi?: unknown;
-  chronaxie?: unknown;
-  lyrics?: string;
-  rest?: unknown;
-}
 
-export interface SanitizedNote {
-  midi: number;
-  chronaxie: number;
-  lyrics?: string;
-  rest?: boolean;
-}
-export type Melody = SanitizedNote[];
 export const DEFAULT_CHRONAXIE = 128;
 export const MAX_CHRONAXIE = 512;
 export const DEFAULT_MIN_CHRONAXIE = 32;

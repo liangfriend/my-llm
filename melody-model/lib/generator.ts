@@ -5,14 +5,11 @@ import {
   normalizeChronaxie,
   resolveTargetLength,
   sanitizeNote,
-  Melody,
-  RawNote,
-  SanitizedNote,
   recommendMidiReplace,
   ChronaxieRules,
   resolveChronaxieRules,
 } from './note';
-import { GenerateOptions, GenerateResult } from '../type';
+import {GenerateOptions, GenerateResult, Melody, RawNote, SanitizedNote} from '../type';
 
 interface FillNoteOptions {
   targetChronaxie?: number;

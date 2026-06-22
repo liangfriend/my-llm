@@ -1,4 +1,3 @@
-import {Melody, RawNote} from "./lib/note";
 // 512一分 256二分 128四分 64八分 32十六分 16三十二分 8六十四分 4 2 1
 export type Chronaxie = number
 // 生成选项
@@ -33,3 +32,17 @@ export interface TrainingExample {
 export interface TrainingData {
     examples: TrainingExample[];
 }
+export interface RawNote {
+  midi?: unknown;
+  chronaxie?: unknown;
+  lyrics?: string;
+  rest?: unknown;
+}
+
+export interface SanitizedNote {
+  midi: number;
+  chronaxie: number;
+  lyrics?: string;
+  rest?: boolean;
+}
+export type Melody = SanitizedNote[];
