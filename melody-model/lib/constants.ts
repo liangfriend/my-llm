@@ -1,4 +1,8 @@
 import path from 'path';
 
+/** 训练样本 JSON 文件路径 */
 export const DATA_FILE = path.join(__dirname, '..', 'training-data.json');
-export const DEFAULT_LENGTH = 8;
+/** 无 text、无 totalNoteLength 时的默认目标音符数 */
+export const DEFAULT_NOTE_LENGTH = 6;
+/** 旋律线计算单位：chronaxie / MELODY_LINE_UNIT 为旋律线上的格数 */
+export const MELODY_LINE_UNIT = 8;

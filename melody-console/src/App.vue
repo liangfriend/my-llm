@@ -1,10 +1,11 @@
 <script setup>
 import { ref } from 'vue';
 import MelodyEditor from './components/MelodyEditor.vue';
+import SampleMelodyEditor from './components/SampleMelodyEditor.vue';
 import ParamEditor from './components/ParamEditor.vue';
 import {playerManager} from "@jsh/note-player";
 import {InstrumentEnum} from "@jsh/note-player/enum";
-import {melodyToToneSeq} from "./utils.js";
+import {flattenSampleMelody, melodyToToneSeq} from "./utils.js";
 
 const apiBase = ref('/api');
 
@@ -25,9 +26,10 @@ const generateResult = ref(null);
 const generateError = ref('');
 const loadingGenerate = ref(false);
 
-const trainText = ref('');
-const trainMelody = ref([{ midi: 62, chronaxie: 4, lyrics: '' }]);
-const trainParams = ref([{ key: 'style', value: 'folk' }]);
+const trainSentences = ref([[{ midi: 62, chronaxie: 128, lyrics: '' }]]);
+const trainMinMidi = ref(null);
+const trainMaxMidi = ref(null);
+const trainParams = ref([{ key: 'style', value: 'classical' }, { key: 'mood', value: 'calm' }]);
 const trainError = ref('');
 const trainMessage = ref('');
 const loadingTrain = ref(false);
@@ -62,6 +64,19 @@ function normalizeMelody(list) {
         n.chronaxie !== undefined ||
         (n.lyrics !== undefined && n.lyrics !== ''),
     );
+}
+
+function normalizeSampleMelody(sentences) {
+  return (sentences || [])
+    .map(sentence => normalizeMelody(sentence))
+    .filter(sentence => sentence.length > 0);
+}
+
+function inferMidiRangeFromMelody(sampleMelody) {
+  const notes = flattenSampleMelody(sampleMelody).filter(note => Number(note.midi) > 0);
+  if (!notes.length) return { min: null, max: null };
+  const mids = notes.map(note => Number(note.midi));
+  return { min: Math.min(...mids), max: Math.max(...mids) };
 }
 
 function paramsToObject(list) {
@@ -148,9 +163,11 @@ function applyLyricsToSeed() {
 }
 
 function copySeedToTraining() {
-  trainMelody.value = seedMelody.value.map(note => ({ ...note }));
-  trainText.value = text.value;
+  trainSentences.value = [seedMelody.value.map(note => ({ ...note }))];
   trainParams.value = params.value.map(row => ({ ...row }));
+  const range = inferMidiRangeFromMelody(trainSentences.value);
+  trainMinMidi.value = range.min;
+  trainMaxMidi.value = range.max;
 }
 
 async function sendTraining() {
@@ -158,23 +175,36 @@ async function sendTraining() {
   trainError.value = '';
   trainMessage.value = '';
   try {
-    const melody = normalizeMelody(trainMelody.value);
+    const melody = normalizeSampleMelody(trainSentences.value);
     if (!melody.length) {
-      throw new Error('训练数据至少包含一条 note');
+      throw new Error('训练数据至少包含一句、且每句至少一条 note');
     }
     const paramsObj = paramsToObject(trainParams.value);
-    const payload = {
-      melody,
-    };
-    if (trainText.value.trim()) payload.text = trainText.value;
+    const payload = { melody };
     if (Object.keys(paramsObj).length) payload.params = paramsObj;
-    const data = await postJson('/train/example', payload);
-    trainMessage.value = data?.message || '训练样本已提交';
+
+    const minMidiNumber = Number(trainMinMidi.value);
+    if (Number.isFinite(minMidiNumber) && minMidiNumber >= 0) {
+      payload.minMidi = Math.round(minMidiNumber);
+    }
+    const maxMidiNumber = Number(trainMaxMidi.value);
+    if (Number.isFinite(maxMidiNumber) && maxMidiNumber > 0) {
+      payload.maxMidi = Math.round(maxMidiNumber);
+    }
+
+    const data = await postJson('/melody/train', payload);
+    trainMessage.value = `${data?.message || '训练样本已提交'}（共 ${data?.totalExamples ?? '?'} 条）`;
   } catch (err) {
     trainError.value = err.message || '提交失败';
   } finally {
     loadingTrain.value = false;
   }
+}
+
+function fillTrainMidiRangeFromMelody() {
+  const range = inferMidiRangeFromMelody(trainSentences.value);
+  trainMinMidi.value = range.min;
+  trainMaxMidi.value = range.max;
 }
 const generateApiVisible = ref(true)
 function switchGenerateApiVisible() {
@@ -182,8 +212,9 @@ function switchGenerateApiVisible() {
 }
 
 
-function play(mdelody) {
-    const seq = melodyToToneSeq(mdelody);
+function play(melodyInput) {
+    const flat = flattenSampleMelody(melodyInput);
+    const seq = melodyToToneSeq(flat);
     const toneSeq = playerManager.generateToneSequence(seq)
     const player = playerManager.add('test', toneSeq, {
         instrument: InstrumentEnum.acoustic_grand_piano,
@@ -204,7 +235,7 @@ function play(mdelody) {
         </p>
         <div class="chip-row">
           <span class="pill">POST /melody/generate</span>
-          <span class="pill">POST /train/example</span>
+          <span class="pill">POST /melody/train</span>
             <button @click="switchGenerateApiVisible">{{ generateApiVisible?'隐藏生成接口':'显示生成接口' }}</button>
         </div>
       </div>
@@ -355,35 +386,58 @@ function play(mdelody) {
       <div class="panel-header">
         <div>
           <p class="eyebrow">训练</p>
-          <h2>POST /train/example</h2>
+          <h2>POST /melody/train</h2>
         </div>
-          <button type="button" class="ghost" @click="play(trainMelody)">播放</button>
+        <button type="button" class="ghost" @click="play(trainSentences)">播放</button>
         <button type="button" class="primary" :disabled="loadingTrain" @click="sendTraining">
           {{ loadingTrain ? '提交中...' : '提交样本' }}
         </button>
       </div>
 
-      <div class="form-grid">
+      <p class="muted">
+        melody 为二维数组（按句存储）；midi=0 表示休止符。写入
+        <code>training-data.json</code>。
+      </p>
+
+      <div class="form-grid multi-cols">
         <label>
-          文本（可选）
-          <textarea
-            v-model="trainText"
-            rows="2"
-            placeholder="训练样本关联的文本"
-          ></textarea>
+          样本 minMidi（可选）
+          <input
+            v-model.number="trainMinMidi"
+            type="number"
+            min="0"
+            max="128"
+            placeholder="自动或手填"
+          />
         </label>
+        <label>
+          样本 maxMidi（可选）
+          <input
+            v-model.number="trainMaxMidi"
+            type="number"
+            min="1"
+            max="128"
+            placeholder="自动或手填"
+          />
+        </label>
+      </div>
+
+      <div class="inline-actions">
+        <button type="button" class="ghost" @click="fillTrainMidiRangeFromMelody">
+          从 melody 推断 min/maxMidi
+        </button>
       </div>
 
       <ParamEditor
         v-model="trainParams"
-        title="训练参数（可选）"
-        hint="与生成参数格式一致。"
+        title="样本标签 params（可选）"
+        hint="用于第 2 步标签权重过滤，如 style、mood。"
       />
 
-      <MelodyEditor
-        v-model="trainMelody"
-        title="训练 melody（必填至少一条）"
-        hint="会直接写入 melody-model 的训练集。"
+      <SampleMelodyEditor
+        v-model="trainSentences"
+        title="样本 melody（必填，二维数组）"
+        hint="每句一条旋律；多句样本用于「上一句 → 下一句」对照。"
       />
 
       <p v-if="trainError" class="error">{{ trainError }}</p>

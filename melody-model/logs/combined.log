@@ -26,3 +26,6 @@
 [2026-06-22 13:52:18] [melody-model] [INFO] 服务启动，监听端口： 3000
 [2026-06-22 15:06:13] [melody-model] [INFO] 服务启动，监听端口： 3000
 [2026-06-22 15:13:53] [melody-model] [INFO] 服务启动，监听端口： 3000
+[2026-06-22 17:26:37] [melody-model] [ERROR] 样本数据获取不到 Expected double-quoted property name in JSON at position 256 (line 15 column 9)
+[2026-06-22 17:31:54] [melody-model] [INFO] 服务启动，监听端口： 3000
+[2026-06-22 18:46:34] [melody-model] [INFO] 服务启动，监听端口： 3000

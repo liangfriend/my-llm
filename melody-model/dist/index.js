@@ -17,10 +17,7 @@ const getErrorMessage = (error) => {
     }
     return String(error);
 };
-// {
-//     origin: 'http://localhost:9080'  // 明确指定前端地址
-// }
-app.use(cors()); // 不设置跨域限制
+app.use(cors());
 app.use(express_1.default.json({ limit: '1mb' }));
 // 连接测试接口
 app.get('/melody/test', (_req, res) => {
@@ -33,56 +30,29 @@ app.get('/melody/test', (_req, res) => {
         res.status(500).json({ error: 'internal server error' });
     }
 });
-// 旋律生成接口
+// 旋律生成接口（当前第 1 步：初始化状态，melody 为空）
 app.post('/melody/generate', (req, res) => {
     try {
-        const { text, seedMelody, length, params, totalChronaxie, minMidi, maxMidi, minChronaxie, minChronaxieInterval, } = req.body || {};
-        if (text !== undefined && typeof text !== 'string') {
-            return res.status(400).json({ error: 'text must be a string when provided' });
+        const result = (0, generator_1.generateMelody)(req.body || {});
+        if (result.state === 'error') {
+            return res.status(400).json(result);
         }
-        if (seedMelody !== undefined && !Array.isArray(seedMelody)) {
-            return res.status(400).json({ error: 'seedMelody must be an array when provided' });
-        }
-        const result = (0, generator_1.generateMelody)({
-            text,
-            seedMelody,
-            length,
-            params,
-            totalChronaxie,
-            minMidi,
-            maxMidi,
-            minChronaxie,
-            minChronaxieInterval,
-        });
-        return res.json({
-            melody: result.melody,
-            meta: {
-                usedExamples: result.usedExamples,
-                targetLength: result.targetLength,
-                paramsUsed: params || {},
-                warnings: result.warnings || [],
-            },
-        });
+        return res.json(result);
     }
     catch (error) {
         logger_1.default.error(`POST /melody/generate failed: ${getErrorMessage(error)}`);
-        return res.status(500).json({ error: 'internal server error' });
+        return res.status(500).json({ melody: [], state: 'error' });
     }
 });
-// 训练接口
+// 训练接口：写入二维 melody 样本
 app.post('/melody/train', (req, res) => {
     try {
-        const { text, melody, params } = req.body || {};
-        const validation = (0, validation_1.validateIncomingMelody)(melody);
+        const validation = (0, validation_1.validateTrainingExample)(req.body);
         if ('error' in validation) {
             return res.status(400).json({ error: validation.error });
         }
         const data = (0, storage_1.loadTrainingData)();
-        data.examples.push({
-            input: typeof text === 'string' ? text : undefined,
-            params: params || {},
-            melody: validation.melody,
-        });
+        data.examples.push(validation.example);
         (0, storage_1.saveTrainingData)(data);
         return res.json({
             message: 'example added',

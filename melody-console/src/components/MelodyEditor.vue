@@ -46,8 +46,12 @@ function noteState(note) {
   const warnings = [];
   if (note.midi !== '' && Number.isNaN(Number(note.midi))) {
     warnings.push('midi number');
-  } else if (note.midi !== '' && (Number(note.midi) < 1 || Number(note.midi) > 128)) {
-    warnings.push('midi 1-128');
+  } else if (
+    note.midi !== '' &&
+    Number(note.midi) !== 0 &&
+    (Number(note.midi) < 1 || Number(note.midi) > 128)
+  ) {
+    warnings.push('midi 0=rest, 1-128');
   }
   if (note.chronaxie !== '' && Number.isNaN(Number(note.chronaxie))) {
     warnings.push('chron number');
@@ -85,7 +89,7 @@ function noteState(note) {
       <input
         type="number"
         inputmode="numeric"
-        min="1"
+        min="0"
         max="128"
         :value="note.midi"
         @input="updateNote(index, 'midi', $event.target.value)"

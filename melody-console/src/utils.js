@@ -30,11 +30,20 @@ function findDuration(chronaxie) {
     throw new Error("unknown chronaxie: " + chronaxie)
 }
 
-export function melodyToToneSeq(
-    melody
-) {
-    return melody.map(({ midi, chronaxie }) => ({
-        midi,
-        duration: findDuration(chronaxie),
-    }))
+export function melodyToToneSeq(melody) {
+  return (melody || [])
+    .filter(({ midi }) => Number(midi) !== 0)
+    .map(({ midi, chronaxie }) => ({
+      midi,
+      duration: findDuration(chronaxie),
+    }));
+}
+
+/** 将二维样本 melody 展平为单句，便于播放预览 */
+export function flattenSampleMelody(sampleMelody) {
+  if (!Array.isArray(sampleMelody)) return [];
+  if (sampleMelody.length && Array.isArray(sampleMelody[0])) {
+    return sampleMelody.flat();
+  }
+  return sampleMelody;
 }
