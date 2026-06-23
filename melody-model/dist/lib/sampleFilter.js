@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.median = median;
+exports.filterByMedianWeight = filterByMedianWeight;
+exports.medianFilterUntil = medianFilterUntil;
 exports.isSampleWithinRequestMidiRange = isSampleWithinRequestMidiRange;
 exports.calcSampleParamsWeight = calcSampleParamsWeight;
 exports.filterSamplesStep2 = filterSamplesStep2;
@@ -15,6 +17,27 @@ function median(values) {
         return (sorted[mid - 1] + sorted[mid]) / 2;
     }
     return sorted[mid];
+}
+/** 保留 weight >= 中位数的项 */
+function filterByMedianWeight(items) {
+    if (!items.length)
+        return [];
+    const threshold = median(items.map(item => item.weight));
+    return items.filter(item => item.weight >= threshold);
+}
+/**
+ * 反复按中位数过滤，直到数量 <= maxCount 或本轮无法继续减少。
+ * 防止权重全相等时死循环。
+ */
+function medianFilterUntil(items, maxCount) {
+    let current = [...items];
+    while (current.length > maxCount) {
+        const next = filterByMedianWeight(current);
+        if (next.length === current.length)
+            break;
+        current = next;
+    }
+    return current;
 }
 /**
  * 请求音高范围是否包裹样本声明的 minMidi/maxMidi。

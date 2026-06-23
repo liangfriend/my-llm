@@ -13,6 +13,8 @@ exports.mustAddLyrics = mustAddLyrics;
 exports.getPrevNoteFromGenerated = getPrevNoteFromGenerated;
 exports.hasMidiRangeLimit = hasMidiRangeLimit;
 exports.hasChronaxieIntervalLimit = hasChronaxieIntervalLimit;
+exports.isChronaxieAllowedForState = isChronaxieAllowedForState;
+exports.getEffectiveMinChronaxie = getEffectiveMinChronaxie;
 exports.hasParamsFilter = hasParamsFilter;
 exports.isNoteRest = isNoteRest;
 exports.getRemainingUnallocatedChronaxie = getRemainingUnallocatedChronaxie;
@@ -226,6 +228,23 @@ function hasMidiRangeLimit(state) {
 }
 function hasChronaxieIntervalLimit(state) {
     return state.minChronaxie !== null || state.minChronaxieInterval !== null;
+}
+/** 第 5 步：时值是否符合 minChronaxie / minChronaxieInterval 约束 */
+function isChronaxieAllowedForState(state, chronaxie) {
+    if (state.minChronaxie === null && state.minChronaxieInterval === null)
+        return true;
+    const rules = (0, note_1.resolveChronaxieRules)(state.minChronaxie, state.minChronaxieInterval);
+    if (chronaxie < rules.minChronaxie)
+        return false;
+    if (state.minChronaxieInterval !== null) {
+        return (chronaxie - rules.minChronaxie) % rules.interval === 0;
+    }
+    return true;
+}
+function getEffectiveMinChronaxie(state) {
+    if (state.minChronaxie !== null)
+        return state.minChronaxie;
+    return (0, note_1.resolveChronaxieRules)(undefined, undefined).minChronaxie;
 }
 function hasParamsFilter(state) {
     return state.params !== null;

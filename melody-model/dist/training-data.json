@@ -6,180 +6,470 @@
         "mood": "calm"
       },
       "minMidi": 60,
-      "maxMidi":69,
+      "maxMidi": 69,
       "melody": [
-        [{
-          "midi": 67,
-          "chronaxie": 96,
-          "lyrics": "床",
-        },
-        {
-          "midi": 69,
-          "chronaxie": 64,
-          "lyrics": "前",
-        },
-        {
-          "midi": 67,
-          "chronaxie": 64,
-          "lyrics": "",
-          
-        },
-        {
-          "midi": 64,
-          "chronaxie": 64,
-          "lyrics": "明",
-          
-        },
-        {
-          "midi": 67,
-          "chronaxie": 64,
-          "lyrics": "",
-          
-        },
-        {
-          "midi": 62,
-          "chronaxie": 128,
-          "lyrics": "月",
-          
-        },
-        {
-          "midi": 64,
-          "chronaxie": 96,
-          "lyrics": "光",
-          
-        },
-        {
-          "midi": 62,
-          "chronaxie": 64,
-          
-        },
-        {
-          "midi": 64,
-          "chronaxie": 64,
-          
-        },
-        {
-          "midi": 67,
-          "chronaxie": 128,
-          
-        }],
-        [{
-          "midi": 62,
-          "chronaxie": 96,
-          "lyrics": "疑",
-          
-        },
-        {
-          "midi": 64,
-          "chronaxie": 64,
-          "lyrics": "是",
-          
-        },
-        {
-          "midi": 62,
-          "chronaxie": 62,
-          "lyrics": "是",
-          
-        },
-        {
-          "midi": 60,
-          "chronaxie": 64,
-          "lyrics": "地",
-          
-        },
-        {
-          "midi": 69,
-          "chronaxie": 62,
-          "lyrics": "",
-          
-        },
-        {
-          "midi": 67,
-          "chronaxie": 128,
-          "lyrics": "上",
-          
-        },
-        {
-          "midi": 69,
-          "chronaxie": 96,
-          "lyrics": "霜",
-          
-        },
-        {
-          "midi": 60,
-          "chronaxie": 64,
-          
-        },
-        {
-          "midi": 62,
-          "chronaxie": 62,
-          
-        },
-        {
-          "midi": 64,
-          "chronaxie": 128,
-          
-        }],
-        [{
-          "midi": 67,
-          "chronaxie": 96,
-          "lyrics": "举",
-          
-        },
-        {
-          "midi": 69,
-          "chronaxie": 64,
-          "lyrics": "头",
-          
-        },
-        {
-          "midi": 67,
-          "chronaxie": 62,
-          "lyrics": "",
-          
-        },
-        {
-          "midi": 64,
-          "chronaxie": 64,
-          "lyrics": "望",
-          
-        },
-        {
-          "midi": 67,
-          "chronaxie": 64,
-          "lyrics": "",
-          
-        },
-        {
-          "midi": 62,
-          "chronaxie": 128,
-          "lyrics": "明",
-          
-        },
-        {
-          "midi": 64,
-          "chronaxie": 96,
-          "lyrics": "月",
-          
-        },
-        {
-          "midi": 62,
-          "chronaxie": 64,
-          
-        },
-        {
-          "midi": 64,
-          "chronaxie": 64,
-          
-        },
-        {
-          "midi": 67,
-          "chronaxie": 128,
-          
-        }]
+        [
+          {
+            "midi": 67,
+            "chronaxie": 96,
+            "lyrics": "床"
+          },
+          {
+            "midi": 69,
+            "chronaxie": 64,
+            "lyrics": "前"
+          },
+          {
+            "midi": 67,
+            "chronaxie": 64,
+            "lyrics": ""
+          },
+          {
+            "midi": 64,
+            "chronaxie": 64,
+            "lyrics": "明"
+          },
+          {
+            "midi": 67,
+            "chronaxie": 64,
+            "lyrics": ""
+          },
+          {
+            "midi": 62,
+            "chronaxie": 128,
+            "lyrics": "月"
+          },
+          {
+            "midi": 64,
+            "chronaxie": 96,
+            "lyrics": "光"
+          },
+          {
+            "midi": 62,
+            "chronaxie": 64
+          },
+          {
+            "midi": 64,
+            "chronaxie": 64
+          },
+          {
+            "midi": 67,
+            "chronaxie": 128
+          }
+        ],
+        [
+          {
+            "midi": 62,
+            "chronaxie": 96,
+            "lyrics": "疑"
+          },
+          {
+            "midi": 64,
+            "chronaxie": 64,
+            "lyrics": "是"
+          },
+          {
+            "midi": 62,
+            "chronaxie": 62,
+            "lyrics": "是"
+          },
+          {
+            "midi": 60,
+            "chronaxie": 64,
+            "lyrics": "地"
+          },
+          {
+            "midi": 69,
+            "chronaxie": 62,
+            "lyrics": ""
+          },
+          {
+            "midi": 67,
+            "chronaxie": 128,
+            "lyrics": "上"
+          },
+          {
+            "midi": 69,
+            "chronaxie": 96,
+            "lyrics": "霜"
+          },
+          {
+            "midi": 60,
+            "chronaxie": 64
+          },
+          {
+            "midi": 62,
+            "chronaxie": 62
+          },
+          {
+            "midi": 64,
+            "chronaxie": 128
+          }
+        ],
+        [
+          {
+            "midi": 67,
+            "chronaxie": 96,
+            "lyrics": "举"
+          },
+          {
+            "midi": 69,
+            "chronaxie": 64,
+            "lyrics": "头"
+          },
+          {
+            "midi": 67,
+            "chronaxie": 62,
+            "lyrics": ""
+          },
+          {
+            "midi": 64,
+            "chronaxie": 64,
+            "lyrics": "望"
+          },
+          {
+            "midi": 67,
+            "chronaxie": 64,
+            "lyrics": ""
+          },
+          {
+            "midi": 62,
+            "chronaxie": 128,
+            "lyrics": "明"
+          },
+          {
+            "midi": 64,
+            "chronaxie": 96,
+            "lyrics": "月"
+          },
+          {
+            "midi": 62,
+            "chronaxie": 64
+          },
+          {
+            "midi": 64,
+            "chronaxie": 64
+          },
+          {
+            "midi": 67,
+            "chronaxie": 128
+          }
         ]
+      ]
+    },
+    {
+      "params": {
+        "style": "classical",
+        "mood": "calm"
+      },
+      "minMidi": 52,
+      "maxMidi": 64,
+      "melody": [
+        [
+          {
+            "midi": 64,
+            "chronaxie": 32,
+            "lyrics": "千"
+          },
+          {
+            "midi": 62,
+            "chronaxie": 32,
+            "lyrics": "山"
+          },
+          {
+            "midi": 57,
+            "chronaxie": 32,
+            "lyrics": "鸟"
+          },
+          {
+            "midi": 64,
+            "chronaxie": 32,
+            "lyrics": "飞"
+          },
+          {
+            "midi": 64,
+            "chronaxie": 128,
+            "lyrics": "绝"
+          }
+        ],
+        [
+          {
+            "midi": 62,
+            "chronaxie": 32,
+            "lyrics": "万"
+          },
+          {
+            "midi": 60,
+            "chronaxie": 32,
+            "lyrics": "径"
+          },
+          {
+            "midi": 57,
+            "chronaxie": 32,
+            "lyrics": "人"
+          },
+          {
+            "midi": 60,
+            "chronaxie": 32,
+            "lyrics": "踪"
+          },
+          {
+            "midi": 55,
+            "chronaxie": 128,
+            "lyrics": "灭"
+          }
+        ],
+        [
+          {
+            "midi": 52,
+            "chronaxie": 32,
+            "lyrics": "孤"
+          },
+          {
+            "midi": 60,
+            "chronaxie": 32,
+            "lyrics": "舟"
+          },
+          {
+            "midi": 59,
+            "chronaxie": 32,
+            "lyrics": "衰"
+          },
+          {
+            "midi": 57,
+            "chronaxie": 32,
+            "lyrics": "笠"
+          },
+          {
+            "midi": 59,
+            "chronaxie": 128,
+            "lyrics": "翁"
+          }
+        ],
+        [
+          {
+            "midi": 59,
+            "chronaxie": 32,
+            "lyrics": "独"
+          },
+          {
+            "midi": 57,
+            "chronaxie": 32,
+            "lyrics": "钓"
+          },
+          {
+            "midi": 55,
+            "chronaxie": 32,
+            "lyrics": "寒"
+          },
+          {
+            "midi": 57,
+            "chronaxie": 32,
+            "lyrics": "江"
+          },
+          {
+            "midi": 52,
+            "chronaxie": 128,
+            "lyrics": "雪"
+          }
+        ]
+      ]
+    },
+    {
+      "params": {
+        "style": "classical",
+        "mood": "sadness"
+      },
+      "minMidi": 55,
+      "maxMidi": 69,
+      "melody": [
+        [
+          {
+            "midi": 64,
+            "chronaxie": 64,
+            "lyrics": "银"
+          },
+          {
+            "midi": 62,
+            "chronaxie": 64,
+            "lyrics": "烛"
+          },
+          {
+            "midi": 60,
+            "chronaxie": 32,
+            "lyrics": "秋"
+          },
+          {
+            "midi": 57,
+            "chronaxie": 96,
+            "lyrics": "光"
+          },
+          {
+            "midi": 60,
+            "chronaxie": 32,
+            "lyrics": "冷"
+          },
+          {
+            "midi": 55,
+            "chronaxie": 32
+          },
+          {
+            "midi": 57,
+            "chronaxie": 32,
+            "lyrics": "华"
+          },
+          {
+            "midi": 60,
+            "chronaxie": 32
+          },
+          {
+            "midi": 62,
+            "chronaxie": 128,
+            "lyrics": "屏"
+          }
+        ],
+        [
+          {
+            "midi": 62,
+            "chronaxie": 64,
+            "lyrics": "轻"
+          },
+          {
+            "midi": 60,
+            "chronaxie": 64,
+            "lyrics": "罗"
+          },
+          {
+            "midi": 57,
+            "chronaxie": 32,
+            "lyrics": "小"
+          },
+          {
+            "midi": 60,
+            "chronaxie": 96,
+            "lyrics": "扇"
+          },
+          {
+            "midi": 57,
+            "chronaxie": 32,
+            "lyrics": "扑"
+          },
+          {
+            "midi": 62,
+            "chronaxie": 32
+          },
+          {
+            "midi": 60,
+            "chronaxie": 32,
+            "lyrics": "流"
+          },
+          {
+            "midi": 57,
+            "chronaxie": 32
+          },
+          {
+            "midi": 55,
+            "chronaxie": 64,
+            "lyrics": "萤"
+          }
+        ],
+        [
+          {
+            "midi": 67,
+            "chronaxie": 32,
+            "lyrics": "天"
+          },
+          {
+            "midi": 67,
+            "chronaxie": 32,
+            "lyrics": "阶"
+          },
+          {
+            "midi": 67,
+            "chronaxie": 32,
+            "lyrics": "夜"
+          },
+          {
+            "midi": 62,
+            "chronaxie": 32
+          },
+          {
+            "midi": 64,
+            "chronaxie": 128,
+            "lyrics": "色"
+          },
+          {
+            "midi": 67,
+            "chronaxie": 32,
+            "lyrics": "凉"
+          },
+          {
+            "midi": 69,
+            "chronaxie": 64
+          },
+          {
+            "midi": 64,
+            "chronaxie": 32,
+            "lyrics": "如"
+          },
+          {
+            "midi": 62,
+            "chronaxie": 128,
+            "lyrics": "水"
+          }
+        ],
+        [
+          {
+            "midi": 62,
+            "chronaxie": 32,
+            "lyrics": "坐"
+          },
+          {
+            "midi": 64,
+            "chronaxie": 32,
+            "lyrics": "看"
+          },
+          {
+            "midi": 62,
+            "chronaxie": 32,
+            "lyrics": "牵"
+          },
+          {
+            "midi": 60,
+            "chronaxie": 32
+          },
+          {
+            "midi": 57,
+            "chronaxie": 128,
+            "lyrics": "牛"
+          },
+          {
+            "midi": 57,
+            "chronaxie": 32,
+            "lyrics": "织"
+          },
+          {
+            "midi": 62,
+            "chronaxie": 32
+          },
+          {
+            "midi": 60,
+            "chronaxie": 32,
+            "lyrics": "女"
+          },
+          {
+            "midi": 57,
+            "chronaxie": 32
+          },
+          {
+            "midi": 55,
+            "chronaxie": 128,
+            "lyrics": "星"
+          }
+        ]
+      ]
     }
   ],
   "level": "样本数据",
-  "timestamp": "2026-06-22 11:25:55"
+  "timestamp": "2026-06-22 19:03:12"
 }

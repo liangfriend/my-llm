@@ -4,6 +4,8 @@ exports.combineDimensionWeights = combineDimensionWeights;
 exports.calcParamsSimilarityWeight = calcParamsSimilarityWeight;
 exports.calcExactMatchWeight = calcExactMatchWeight;
 exports.calcMelodyLineSimilarityWeight = calcMelodyLineSimilarityWeight;
+exports.calcChronaxieProximityWeight = calcChronaxieProximityWeight;
+exports.weightedRandomPick = weightedRandomPick;
 const weightConfig_1 = require("./weightConfig");
 /**
  * 多维度权重合成：各维度系数相乘。
@@ -54,4 +56,23 @@ function calcMelodyLineSimilarityWeight(similarity) {
     const clamped = Math.min(1, Math.max(0, similarity));
     const { minFactor } = weightConfig_1.WEIGHT_CONFIG.melodyLine;
     return minFactor + clamped * (1 - minFactor);
+}
+/** 目标时值接近度权重：离目标越远权重越低 */
+function calcChronaxieProximityWeight(sampleChronaxie, targetChronaxie) {
+    return 1 / (1 + Math.abs(sampleChronaxie - targetChronaxie));
+}
+/** 按权重加权随机选取一项 */
+function weightedRandomPick(items) {
+    if (!items.length)
+        return null;
+    const total = items.reduce((sum, item) => sum + item.weight, 0);
+    if (total <= 0)
+        return items[0];
+    let random = Math.random() * total;
+    for (const item of items) {
+        random -= item.weight;
+        if (random <= 0)
+            return item;
+    }
+    return items[items.length - 1];
 }

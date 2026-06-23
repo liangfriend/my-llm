@@ -29,4 +29,13 @@ exports.WEIGHT_CONFIG = {
         /** 最终权重 = minFactor + similarity * (1 - minFactor) */
         minFactor: 0.1,
     },
+    /** 第 4 步：目标旋律线候选过滤 */
+    targetMelodyLine: {
+        /** 中位数反复过滤直到候选数 <= maxCandidates */
+        maxCandidates: 10,
+    },
+    /** 第 5 步：单音候选过滤 */
+    noteGeneration: {
+        maxCandidates: 6,
+    },
 };

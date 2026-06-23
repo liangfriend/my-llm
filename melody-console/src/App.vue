@@ -10,13 +10,13 @@ import {flattenSampleMelody, melodyToToneSeq} from "./utils.js";
 const apiBase = ref('/api');
 
 const text = ref('');
-const length = ref(8);
-const totalChronaxieNumber = ref(null);
+const totalNoteLength = ref(null);
+const totalChronaxie = ref(null);
 const minChronaxie = ref(null);
 const minChronaxieInterval = ref(null);
 const minMidi = ref(null);
 const maxMidi = ref(null);
-const seedMelody = ref([{ midi: 60, chronaxie: 4, lyrics: '' }]);
+const preSentence = ref([{ midi: 60, chronaxie: 128, lyrics: '' }]);
 const params = ref([
   { key: 'style', value: 'classical' },
   { key: 'mood', value: 'calm' },
@@ -114,17 +114,20 @@ async function postJson(path, payload) {
 async function runGenerate() {
   loadingGenerate.value = true;
   generateError.value = '';
+  generateResult.value = null;
   try {
     const payload = {};
     const paramsObj = paramsToObject(params.value);
-    const notes = normalizeMelody(seedMelody.value);
+    const notes = normalizeMelody(preSentence.value);
     if (text.value.trim()) payload.text = text.value;
-    if (notes.length) payload.seedMelody = notes;
-    if (Number(length.value) > 0) payload.length = Number(length.value);
-    const totalChronaxie = Number(totalChronaxieNumber.value);
-    if (Number.isFinite(totalChronaxie) && totalChronaxie > 0) {
-      payload.totalChronaxieNumber = totalChronaxie;
-      payload.totalChronaxie = totalChronaxie;
+    if (notes.length) payload.preSentence = notes;
+    const noteLength = Number(totalNoteLength.value);
+    if (Number.isFinite(noteLength) && noteLength > 0) {
+      payload.totalNoteLength = Math.round(noteLength);
+    }
+    const totalChronaxieValue = Number(totalChronaxie.value);
+    if (Number.isFinite(totalChronaxieValue) && totalChronaxieValue > 0) {
+      payload.totalChronaxie = Math.round(totalChronaxieValue);
     }
     const minChron = Number(minChronaxie.value);
     if (Number.isFinite(minChron) && minChron > 0) {
@@ -135,7 +138,7 @@ async function runGenerate() {
       payload.minChronaxieInterval = Math.round(minChronStep);
     }
     const minMidiNumber = Number(minMidi.value);
-    if (Number.isFinite(minMidiNumber) && minMidiNumber > 0) {
+    if (Number.isFinite(minMidiNumber) && minMidiNumber >= 0) {
       payload.minMidi = Math.round(minMidiNumber);
     }
     const maxMidiNumber = Number(maxMidi.value);
@@ -143,7 +146,12 @@ async function runGenerate() {
       payload.maxMidi = Math.round(maxMidiNumber);
     }
     if (Object.keys(paramsObj).length) payload.params = paramsObj;
-    generateResult.value = await postJson('/melody/generate', payload);
+
+    const data = await postJson('/melody/generate', payload);
+    if (data?.state === 'error') {
+      throw new Error('生成失败（state: error）');
+    }
+    generateResult.value = data;
   } catch (err) {
     generateError.value = err.message || '无法生成';
   } finally {
@@ -151,23 +159,31 @@ async function runGenerate() {
   }
 }
 
-function applyLyricsToSeed() {
+function applyLyricsToPreSentence() {
   const chars = Array.from(text.value || '');
   if (!chars.length) return;
-  const next = [...seedMelody.value];
+  const next = [...preSentence.value];
   chars.forEach((char, idx) => {
     const existing = next[idx] || { midi: '', chronaxie: '', lyrics: '' };
     next[idx] = { ...existing, lyrics: char };
   });
-  seedMelody.value = next;
+  preSentence.value = next;
 }
 
-function copySeedToTraining() {
-  trainSentences.value = [seedMelody.value.map(note => ({ ...note }))];
+function copyPreSentenceToTraining() {
+  trainSentences.value = [preSentence.value.map(note => ({ ...note }))];
   trainParams.value = params.value.map(row => ({ ...row }));
   const range = inferMidiRangeFromMelody(trainSentences.value);
   trainMinMidi.value = range.min;
   trainMaxMidi.value = range.max;
+}
+
+function sumMelodyChronaxie(melody) {
+  return (melody || []).reduce((sum, note) => sum + Number(note.chronaxie || 0), 0);
+}
+
+function clearPreSentence() {
+  preSentence.value = [];
 }
 
 async function sendTraining() {
@@ -258,30 +274,39 @@ function play(melodyInput) {
           </button>
         </div>
 
+        <p class="muted">
+          所有参数可选；未填表示该维度不做限制。默认生成 6 个音符。
+        </p>
+
         <div class="form-grid multi-cols">
           <label>
-            Lyrics / 文本（可选）
+            text / 歌词（可选）
             <textarea
               v-model="text"
               rows="3"
-              placeholder="填写歌词文本或留空"
+              placeholder="填写歌词；长度可决定目标音符数"
             ></textarea>
           </label>
           <label>
-            目标长度（可选）
-            <input v-model.number="length" type="number" min="1" placeholder="8" />
-          </label>
-          <label>
-            totalChronaxieNumber (optional)
+            totalNoteLength（可选）
             <input
-              v-model.number="totalChronaxieNumber"
+              v-model.number="totalNoteLength"
               type="number"
               min="1"
-              placeholder="64"
+              placeholder="默认 6 或歌词字数"
             />
           </label>
           <label>
-            minChronaxie (可选，最小时值)
+            totalChronaxie（可选）
+            <input
+              v-model.number="totalChronaxie"
+              type="number"
+              min="1"
+              placeholder="640"
+            />
+          </label>
+          <label>
+            minChronaxie（可选）
             <input
               v-model.number="minChronaxie"
               type="number"
@@ -290,51 +315,52 @@ function play(melodyInput) {
             />
           </label>
           <label>
-            minChronaxieInterval (可选，最小间隔)
+            minChronaxieInterval（可选）
             <input
               v-model.number="minChronaxieInterval"
               type="number"
               min="1"
-              placeholder="1"
+              placeholder="16"
             />
           </label>
           <label>
-            minMidi (可选)
+            minMidi（可选）
             <input
               v-model.number="minMidi"
               type="number"
-              min="1"
+              min="0"
               max="128"
-              placeholder="1"
+              placeholder="不填则不限制"
             />
           </label>
           <label>
-            maxMidi (可选)
+            maxMidi（可选）
             <input
               v-model.number="maxMidi"
               type="number"
               min="1"
               max="128"
-              placeholder="128"
+              placeholder="不填则不限制"
             />
           </label>
         </div>
 
         <ParamEditor
           v-model="params"
-          title="条件参数 params（可选）"
-          hint="键值对将转成对象，数字会自动转 number。"
+          title="params 标签（可选）"
+          hint="用于样本标签权重过滤，如 style、mood。"
         />
 
         <MelodyEditor
-          v-model="seedMelody"
-          title="Seed melody（可选）"
-          hint="可填部分或完整旋律，缺失字段由模型自动补足。"
+          v-model="preSentence"
+          title="preSentence 上一句（可选）"
+          hint="一维数组；有值时按「上一句 → 当前句」生成。midi=0 为休止符。"
         />
 
         <div class="inline-actions">
-          <button type="button" class="ghost" @click="applyLyricsToSeed">用文本填充歌词</button>
-          <button type="button" class="ghost" @click="copySeedToTraining">复制到训练区</button>
+          <button type="button" class="ghost" @click="applyLyricsToPreSentence">用 text 填充 preSentence 歌词</button>
+          <button type="button" class="ghost" @click="copyPreSentenceToTraining">复制到训练区</button>
+          <button type="button" class="ghost" @click="clearPreSentence">清空 preSentence</button>
         </div>
 
         <p v-if="generateError" class="error">{{ generateError }}</p>
@@ -346,22 +372,25 @@ function play(melodyInput) {
             <p class="eyebrow">返回</p>
             <h2>生成结果</h2>
           </div>
-            <button type="button" class="ghost" @click="play(generateResult.melody)">播放</button>
+            <button
+              type="button"
+              class="ghost"
+              :disabled="!generateResult?.melody?.length"
+              @click="play(generateResult.melody)"
+            >
+              播放
+            </button>
             <button type="button" class="ghost" @click="generateResult = null">清空</button>
         </div>
 
         <div v-if="!generateResult" class="placeholder">
-          <p class="muted">等待请求完成后展示 melody 和 meta。</p>
+          <p class="muted">等待请求完成后展示 melody 与 state。</p>
         </div>
         <div v-else class="result">
           <div class="meta-row">
-            <span class="pill light">usedExamples: {{ generateResult.meta?.usedExamples }}</span>
-            <span class="pill light">targetLength: {{ generateResult.meta?.targetLength }}</span>
-          </div>
-          <div v-if="generateResult.meta?.warnings?.length" class="warning-list">
-            <p v-for="(w, idx) in generateResult.meta.warnings" :key="idx" class="warning">
-              ⚠ {{ w }}
-            </p>
+            <span class="pill light">state: {{ generateResult.state }}</span>
+            <span class="pill light">notes: {{ generateResult.melody?.length ?? 0 }}</span>
+            <span class="pill light">Σ chronaxie: {{ sumMelodyChronaxie(generateResult.melody) }}</span>
           </div>
           <div class="note-grid note-grid-head">
             <span>midi</span>
