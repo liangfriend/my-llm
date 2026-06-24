@@ -27,12 +27,12 @@ function updateSentence(index, nextSentence) {
 }
 
 function addSentence() {
-  emit('update:modelValue', [...sentences.value, [{ midi: '', chronaxie: '' }]]);
+  emit('update:modelValue', [...sentences.value, [{ midi: '', chronaxie: '', lyrics: '' }]]);
 }
 
 function removeSentence(index) {
   const next = sentences.value.filter((_, idx) => idx !== index);
-  emit('update:modelValue', next.length ? next : [[{ midi: '', chronaxie: '' }]]);
+  emit('update:modelValue', next.length ? next : [[{ midi: '', chronaxie: '', lyrics: '' }]]);
 }
 </script>
 

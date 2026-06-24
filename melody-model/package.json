@@ -15,7 +15,6 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.2.1",
-    "pinyin-pro": "^3.28.1",
     "winston": "^3.19.0"
   },
   "devDependencies": {

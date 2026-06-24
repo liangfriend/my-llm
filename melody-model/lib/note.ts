@@ -85,37 +85,21 @@ export function normalizeChronaxie(value: unknown, rules: ChronaxieRules): numbe
 // 安全的解构 note
 export function sanitizeNote(
   note: RawNote = {},
-  lyric?: string,
   rules?: ChronaxieRules,
 ): SanitizedNote {
   const rest = isRestMidi(note.midi);
   const midi = rest ? 0 : clampMidi(note.midi) ?? 60;
   const effectiveRules = rules ?? resolveChronaxieRules(undefined, undefined);
   const chronaxie = normalizeChronaxie(note.chronaxie, effectiveRules);
-  const lyrics = rest ? undefined : lyric !== undefined ? lyric : note.lyrics;
-  return { midi, chronaxie, lyrics };
-}
-
-/** 统计一句旋律中已分配的歌词字符总数 */
-export function countLyricsInMelody(melody: SanitizedNote[]): number {
-  return melody.reduce((sum, note) => {
-    if (!note.lyrics) return sum;
-    return sum + Array.from(note.lyrics).length;
-  }, 0);
+  return { midi, chronaxie };
 }
 
 /**
  * 解析目标音符长度。
- * 有歌词时至少为歌词字数；无歌词无 totalNoteLength 时用 DEFAULT_NOTE_LENGTH（6）。
+ * 未传 totalNoteLength 时使用 DEFAULT_NOTE_LENGTH（6）。
  */
-export function resolveTargetNoteLength(textLength: number, totalNoteLength: unknown): number {
+export function resolveTargetNoteLength(totalNoteLength: unknown): number {
   const requested = parsePositiveInt(totalNoteLength);
-  if (textLength > 0) {
-    if (requested === null || requested < textLength) {
-      return textLength;
-    }
-    return requested;
-  }
   if (requested !== null) {
     return requested;
   }

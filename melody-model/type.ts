@@ -3,7 +3,6 @@ export type Chronaxie = number;
 
 /** POST /melody/generate 请求体，所有字段均可选；未传表示该维度不做限制 */
 export interface GenerateOptions {
-  text?: string;
   totalNoteLength?: unknown;
   preSentence?: RawNote[];
   params?: Record<string, unknown>;
@@ -12,35 +11,43 @@ export interface GenerateOptions {
   maxMidi?: unknown;
   minChronaxie?: unknown;
   minChronaxieInterval?: unknown;
+  /** 为 true 时第 3 步排除下一句句尾音级为 2/4/5/7 的样本句对 */
+  stableEnding?: unknown;
 }
 
 /** 生成接口响应 */
 export interface GenerateResult {
   melody: Melody;
   state: 'success' | 'error';
+  message?: string;
 }
 
 /** 原始音符；midi 为 0 表示休止符 */
 export interface RawNote {
   midi?: unknown;
   chronaxie?: unknown;
-  lyrics?: string;
 }
 
 /** 校验/标准化后的音符 */
 export interface SanitizedNote {
   midi: number;
   chronaxie: number;
-  lyrics?: string;
 }
 
 export type Melody = SanitizedNote[];
 /** 一句旋律 */
 export type SentenceMelody = Melody;
-/** 样本中按句存储的旋律，二维数组 */
-export type SampleMelody = SentenceMelody[];
 
-/** 训练样本；melody 为二维数组，每句一条旋律线 */
+/** 样本中按句存储：每句含 sentence 与 totalChronaxie（26.6.23 起） */
+export interface SampleSentence {
+  sentence: SentenceMelody;
+  totalChronaxie: number;
+}
+
+/** 样本 melody：句对象数组 */
+export type SampleMelody = SampleSentence[];
+
+/** 训练样本 */
 export interface TrainingExample {
   params?: Record<string, unknown>;
   minMidi?: number;
@@ -52,11 +59,10 @@ export interface TrainingData {
   examples: TrainingExample[];
 }
 
-/** 上一句结尾音符及其拼音，供第 4、5 步对照样本使用 */
+/** 上一句结尾音符，供第 4 步对照样本使用 */
 export interface PreSentenceLastNote {
   midi: number;
   chronaxie: number;
-  pinyin: string | null;
 }
 
 /** 从 preSentence 参数推导出的上一句上下文 */
@@ -65,39 +71,35 @@ export interface PreSentenceContext {
   melodyLine: number[];
   totalChronaxie: number;
   noteCount: number;
-  lyricCount: number;
   lastNote: PreSentenceLastNote | null;
 }
 
-/** 第 3 步平铺后的单个样本音符及其上下文，供第 5 步加权选取 */
-export interface SampleNoteEntry {
+/** 第 3 步：样本句信息（当前句） */
+export interface SampleSentenceInfo {
   sampleWeight: number;
-  midi: number;
-  chronaxie: number;
-  pinyin: string | null;
-  sentenceMelodyLine: number[];
-  sentenceTotalChronaxie: number;
-  sentenceNoteCount: number;
-  sentenceLyricCount: number;
-  prevMidi: number | null;
-  prevChronaxie: number | null;
-  prevPinyin: string | null;
-  prevSentenceMelodyLine: number[] | null;
-  prevSentenceTotalChronaxie: number | null;
-  prevSentenceNoteCount: number | null;
-  prevSentenceLyricCount: number | null;
-  prevSentenceLastMidi: number | null;
-  prevSentenceLastChronaxie: number | null;
-  prevSentenceLastPinyin: string | null;
+  melodyLine: number[];
+  totalChronaxie: number;
+  noteCount: number;
+  prevMelodyLine: number[] | null;
+  prevTotalChronaxie: number | null;
+  prevNoteCount: number | null;
+  prevLastMidi: number | null;
+  prevLastChronaxie: number | null;
+  /** 样本上一句完整旋律，供第 4 步句尾反向 midi 对照 */
+  prevSentence: SentenceMelody | null;
+}
+
+/** 第 3 步：样本句数组表项 [当前句信息, 下一句] */
+export interface SampleSentencePair {
+  current: SampleSentenceInfo;
+  next: SampleSentence;
 }
 
 /**
  * 贯穿生成全流程的状态对象。
- * 第 1 步完成输入归一化与计数初始化；第 2～6 步逐步填充中间结果。
+ * 第 1 步完成输入归一化与计数初始化；第 2～5 步逐步填充中间结果。
  */
 export interface GenerationState {
-  /** 歌词字符数组 */
-  text: string[];
   /** 标签；null 表示不做标签过滤 */
   params: Record<string, unknown> | null;
   /** 音高下限；null 表示不限制 */
@@ -112,26 +114,18 @@ export interface GenerationState {
   targetTotalChronaxie: number | null;
   /** 目标音符个数 */
   targetNoteLength: number;
-  /** 已生成音符的累加时值 */
-  currentAccumulatedChronaxie: number;
-  /** 预计平均时值 = 目标总时值 / 目标音符数 */
-  expectedAverageChronaxie: number | null;
-  /** 差值权重：预期累加时值与实际累加时值的偏差，供第 5 步纠正时值 */
-  chronaxieDrift: number;
   /** 已生成的当前句旋律 */
   generatedMelody: Melody;
-  /** 已生成音符数量 */
-  generatedNoteCount: number;
   /** 上一句上下文；无 preSentence 时为 null */
   preSentence: PreSentenceContext | null;
   /** 第 2 步：标签过滤后的样本 */
   filteredSamples: TrainingExample[];
   /** 第 2 步：与 filteredSamples 等长的样本权重 */
   sampleWeights: number[];
-  /** 第 3 步：平铺后的样本音符列表 */
-  sampleNoteEntries: SampleNoteEntry[];
-  /** 第 3 步：与 sampleNoteEntries 等长的音符权重 */
-  sampleNoteWeights: number[];
-  /** 第 4 步：选中的目标旋律线 */
-  targetMelodyLine: number[] | null;
+  /** 第 3 步：样本句数组表 */
+  sampleSentencePairs: SampleSentencePair[];
+  /** 第 4 步：选中的目标样本句（下一句） */
+  targetSampleSentence: SampleSentence | null;
+  /** 尾音：为 true 时第 3 步过滤下一句句尾为 2/4/5/7 级的样本句对 */
+  requireStableEnding: boolean;
 }

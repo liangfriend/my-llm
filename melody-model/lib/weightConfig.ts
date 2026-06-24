@@ -17,7 +17,7 @@ export const WEIGHT_CONFIG = {
     genericMismatchFactor: 0.8,
   },
 
-  /** 第 4、5 步：midi、chronaxie、pinyin 等精确相等时的权重（待后续步骤使用） */
+  /** 第 4 步：midi、chronaxie 等精确相等时的权重 */
   exactMatch: {
     matchFactor: 2,
     mismatchFactor: 0.5,
@@ -29,14 +29,11 @@ export const WEIGHT_CONFIG = {
     minFactor: 0.1,
   },
 
-  /** 第 4 步：目标旋律线候选过滤 */
-  targetMelodyLine: {
+  /** 第 4 步：目标样本句候选过滤 */
+  targetSampleSentence: {
     /** 中位数反复过滤直到候选数 <= maxCandidates */
-    maxCandidates: 5,
-  },
-
-  /** 第 5 步：单音候选过滤 */
-  noteGeneration: {
-    maxCandidates: 6,
+    maxCandidates: 1000,
+    /** 有 preSentence 时，从句尾向前每匹配一个 midi 累加的权重 */
+    reverseMidiMatchBonus: 5,
   },
 } as const;

@@ -8,260 +8,1178 @@
       "minMidi": 55,
       "maxMidi": 72,
       "melody": [
-        [
-          {
-            "midi": 69,
-            "chronaxie": 32,
-            "lyrics": "人"
-          },
-          {
-            "midi": 67,
-            "chronaxie": 32,
-            "lyrics": "间"
-          },
-          {
-            "midi": 64,
-            "chronaxie": 32,
-            "lyrics": "琴"
-          },
-          {
-            "midi": 67,
-            "chronaxie": 32,
-            "lyrics": "悠"
-          },
-          {
-            "midi": 64,
-            "chronaxie": 64,
-            "lyrics": "扬"
-          },
-          {
-            "midi": 69,
-            "chronaxie": 32,
-            "lyrics": "姑"
-          },
-          {
-            "midi": 67,
-            "chronaxie": 32,
-            "lyrics": "娘"
-          },
-          {
-            "midi": 69,
-            "chronaxie": 32,
-            "lyrics": "把"
-          },
-          {
-            "midi": 67,
-            "chronaxie": 32,
-            "lyrics": "谁"
-          },
-          {
-            "midi": 64,
-            "chronaxie": 32,
-            "lyrics": "记"
-          },
-          {
-            "midi": 67,
-            "chronaxie": 32,
-            "lyrics": "心"
-          },
-          {
-            "midi": 64,
-            "chronaxie": 128,
-            "lyrics": "上"
-          }
-        ],
-        [
-          {
-            "midi": 64,
-            "chronaxie": 32,
-            "lyrics": "南"
-          },
-          {
-            "midi": 64,
-            "chronaxie": 32,
-            "lyrics": "来"
-          },
-          {
-            "midi": 57,
-            "chronaxie": 32,
-            "lyrics": "与"
-          },
-          {
-            "midi": 64,
-            "chronaxie": 32,
-            "lyrics": "北"
-          },
-          {
-            "midi": 62,
-            "chronaxie": 64,
-            "lyrics": "往"
-          },
-          {
-            "midi": 55,
-            "chronaxie": 32,
-            "lyrics": "美"
-          },
-          {
-            "midi": 67,
-            "chronaxie": 32,
-            "lyrics": "人"
-          },
-          {
-            "midi": 55,
-            "chronaxie": 32,
-            "lyrics": "取"
-          },
-          {
-            "midi": 67,
-            "chronaxie": 32,
-            "lyrics": "情"
-          },
-          {
-            "midi": 67,
-            "chronaxie": 32,
-            "lyrics": "寄"
-          },
-          {
-            "midi": 67,
-            "chronaxie": 32,
-            "lyrics": "琵"
-          },
-          {
-            "midi": 64,
-            "chronaxie": 128,
-            "lyrics": "琶"
-          }
-        ],
-        [
-          {
-            "midi": 69,
-            "chronaxie": 32,
-            "lyrics": "半"
-          },
-          {
-            "midi": 72,
-            "chronaxie": 32,
-            "lyrics": "掩"
-          },
-          {
-            "midi": 72,
-            "chronaxie": 32,
-            "lyrics": "面"
-          },
-          {
-            "midi": 60,
-            "chronaxie": 32,
-            "lyrics": "惆"
-          },
-          {
-            "midi": 62,
-            "chronaxie": 32,
-            "lyrics": "怅"
-          },
-          {
-            "midi": 62,
-            "chronaxie": 32,
-            "lyrics": "恨"
-          },
-          {
-            "midi": 60,
-            "chronaxie": 32,
-            "lyrics": "只"
-          },
-          {
-            "midi": 62,
-            "chronaxie": 32,
-            "lyrics": "恨"
-          },
-          {
-            "midi": 64,
-            "chronaxie": 32,
-            "lyrics": "泪"
-          },
-          {
-            "midi": 67,
-            "chronaxie": 32
-          },
-          {
-            "midi": 67,
-            "chronaxie": 32,
-            "lyrics": "两"
-          },
-          {
-            "midi": 64,
-            "chronaxie": 32
-          },
-          {
-            "midi": 69,
-            "chronaxie": 96,
-            "lyrics": "行"
-          }
-        ],
-        [
-          {
-            "midi": 57,
-            "chronaxie": 32,
-            "lyrics": "我"
-          },
-          {
-            "midi": 60,
-            "chronaxie": 32,
-            "lyrics": "提"
-          },
-          {
-            "midi": 60,
-            "chronaxie": 32,
-            "lyrics": "笔"
-          },
-          {
-            "midi": 57,
-            "chronaxie": 32,
-            "lyrics": "短"
-          },
-          {
-            "midi": 64,
-            "chronaxie": 32,
-            "lyrics": "叹"
-          },
-          {
-            "midi": 62,
-            "chronaxie": 32,
-            "lyrics": "你"
-          },
-          {
-            "midi": 60,
-            "chronaxie": 32,
-            "lyrics": "抚"
-          },
-          {
-            "midi": 59,
-            "chronaxie": 32,
-            "lyrics": "琴"
-          },
-          {
-            "midi": 60,
-            "chronaxie": 32,
-            "lyrics": "一"
-          },
-          {
-            "midi": 59,
-            "chronaxie": 32,
-            "lyrics": "世"
-          },
-          {
-            "midi": 60,
-            "chronaxie": 32,
-            "lyrics": "风"
-          },
-          {
-            "midi": 57,
-            "chronaxie": 192,
-            "lyrics": "华"
-          }
-        ]
+        {
+          "sentence": [
+            {
+              "midi": 69,
+              "chronaxie": 32
+            },
+            {
+              "midi": 67,
+              "chronaxie": 32
+            },
+            {
+              "midi": 64,
+              "chronaxie": 32
+            },
+            {
+              "midi": 67,
+              "chronaxie": 32
+            },
+            {
+              "midi": 64,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 32
+            },
+            {
+              "midi": 67,
+              "chronaxie": 32
+            },
+            {
+              "midi": 69,
+              "chronaxie": 32
+            },
+            {
+              "midi": 67,
+              "chronaxie": 32
+            },
+            {
+              "midi": 64,
+              "chronaxie": 32
+            },
+            {
+              "midi": 67,
+              "chronaxie": 32
+            },
+            {
+              "midi": 64,
+              "chronaxie": 128
+            }
+          ],
+          "totalChronaxie": 512
+        },
+        {
+          "sentence": [
+            {
+              "midi": 64,
+              "chronaxie": 32
+            },
+            {
+              "midi": 64,
+              "chronaxie": 32
+            },
+            {
+              "midi": 57,
+              "chronaxie": 32
+            },
+            {
+              "midi": 64,
+              "chronaxie": 32
+            },
+            {
+              "midi": 62,
+              "chronaxie": 64
+            },
+            {
+              "midi": 55,
+              "chronaxie": 32
+            },
+            {
+              "midi": 67,
+              "chronaxie": 32
+            },
+            {
+              "midi": 55,
+              "chronaxie": 32
+            },
+            {
+              "midi": 67,
+              "chronaxie": 32
+            },
+            {
+              "midi": 67,
+              "chronaxie": 32
+            },
+            {
+              "midi": 67,
+              "chronaxie": 32
+            },
+            {
+              "midi": 64,
+              "chronaxie": 128
+            }
+          ],
+          "totalChronaxie": 512
+        },
+        {
+          "sentence": [
+            {
+              "midi": 69,
+              "chronaxie": 32
+            },
+            {
+              "midi": 72,
+              "chronaxie": 32
+            },
+            {
+              "midi": 72,
+              "chronaxie": 32
+            },
+            {
+              "midi": 60,
+              "chronaxie": 32
+            },
+            {
+              "midi": 62,
+              "chronaxie": 32
+            },
+            {
+              "midi": 62,
+              "chronaxie": 32
+            },
+            {
+              "midi": 60,
+              "chronaxie": 32
+            },
+            {
+              "midi": 62,
+              "chronaxie": 32
+            },
+            {
+              "midi": 64,
+              "chronaxie": 32
+            },
+            {
+              "midi": 67,
+              "chronaxie": 32
+            },
+            {
+              "midi": 67,
+              "chronaxie": 32
+            },
+            {
+              "midi": 64,
+              "chronaxie": 32
+            },
+            {
+              "midi": 69,
+              "chronaxie": 96
+            }
+          ],
+          "totalChronaxie": 480
+        },
+        {
+          "sentence": [
+            {
+              "midi": 57,
+              "chronaxie": 32
+            },
+            {
+              "midi": 60,
+              "chronaxie": 32
+            },
+            {
+              "midi": 60,
+              "chronaxie": 32
+            },
+            {
+              "midi": 57,
+              "chronaxie": 32
+            },
+            {
+              "midi": 64,
+              "chronaxie": 32
+            },
+            {
+              "midi": 62,
+              "chronaxie": 32
+            },
+            {
+              "midi": 60,
+              "chronaxie": 32
+            },
+            {
+              "midi": 59,
+              "chronaxie": 32
+            },
+            {
+              "midi": 60,
+              "chronaxie": 32
+            },
+            {
+              "midi": 59,
+              "chronaxie": 32
+            },
+            {
+              "midi": 60,
+              "chronaxie": 32
+            },
+            {
+              "midi": 57,
+              "chronaxie": 192
+            }
+          ],
+          "totalChronaxie": 544
+        }
+      ]
+    },
+    {
+      "params": {
+        "style": "classical",
+        "mood": "calm",
+        "key": "C"
+      },
+      "minMidi": 60,
+      "maxMidi": 72,
+      "melody": [
+        {
+          "sentence": [
+            {
+              "midi": 60,
+              "chronaxie": 64
+            },
+            {
+              "midi": 62,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 64
+            },
+            {
+              "midi": 65,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            }
+          ],
+          "totalChronaxie": 448
+        },
+        {
+          "sentence": [
+            {
+              "midi": 64,
+              "chronaxie": 64
+            },
+            {
+              "midi": 62,
+              "chronaxie": 64
+            },
+            {
+              "midi": 60,
+              "chronaxie": 64
+            },
+            {
+              "midi": 62,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 64
+            }
+          ],
+          "totalChronaxie": 448
+        },
+        {
+          "sentence": [
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 65,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 64
+            },
+            {
+              "midi": 62,
+              "chronaxie": 64
+            },
+            {
+              "midi": 60,
+              "chronaxie": 64
+            },
+            {
+              "midi": 62,
+              "chronaxie": 64
+            }
+          ],
+          "totalChronaxie": 448
+        },
+        {
+          "sentence": [
+            {
+              "midi": 60,
+              "chronaxie": 64
+            },
+            {
+              "midi": 60,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 64
+            },
+            {
+              "midi": 60,
+              "chronaxie": 128
+            }
+          ],
+          "totalChronaxie": 512
+        }
+      ]
+    },
+    {
+      "params": {
+        "style": "folk",
+        "mood": "bright",
+        "key": "G"
+      },
+      "minMidi": 67,
+      "maxMidi": 78,
+      "melody": [
+        {
+          "sentence": [
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 64
+            },
+            {
+              "midi": 71,
+              "chronaxie": 64
+            },
+            {
+              "midi": 72,
+              "chronaxie": 64
+            },
+            {
+              "midi": 74,
+              "chronaxie": 64
+            },
+            {
+              "midi": 71,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 64
+            }
+          ],
+          "totalChronaxie": 448
+        },
+        {
+          "sentence": [
+            {
+              "midi": 74,
+              "chronaxie": 64
+            },
+            {
+              "midi": 74,
+              "chronaxie": 64
+            },
+            {
+              "midi": 71,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 64
+            },
+            {
+              "midi": 71,
+              "chronaxie": 64
+            },
+            {
+              "midi": 74,
+              "chronaxie": 64
+            }
+          ],
+          "totalChronaxie": 448
+        },
+        {
+          "sentence": [
+            {
+              "midi": 71,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 64
+            },
+            {
+              "midi": 71,
+              "chronaxie": 64
+            },
+            {
+              "midi": 74,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            }
+          ],
+          "totalChronaxie": 448
+        },
+        {
+          "sentence": [
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 71,
+              "chronaxie": 64
+            },
+            {
+              "midi": 74,
+              "chronaxie": 64
+            },
+            {
+              "midi": 74,
+              "chronaxie": 64
+            },
+            {
+              "midi": 71,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 128
+            }
+          ],
+          "totalChronaxie": 512
+        }
+      ]
+    },
+    {
+      "params": {
+        "style": "pop",
+        "mood": "cheerful",
+        "key": "D"
+      },
+      "minMidi": 62,
+      "maxMidi": 74,
+      "melody": [
+        {
+          "sentence": [
+            {
+              "midi": 62,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 64
+            },
+            {
+              "midi": 66,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 64
+            }
+          ],
+          "totalChronaxie": 320
+        },
+        {
+          "sentence": [
+            {
+              "midi": 69,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 66,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 64
+            }
+          ],
+          "totalChronaxie": 320
+        },
+        {
+          "sentence": [
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 66,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 64
+            },
+            {
+              "midi": 62,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 64
+            }
+          ],
+          "totalChronaxie": 320
+        },
+        {
+          "sentence": [
+            {
+              "midi": 62,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 64
+            },
+            {
+              "midi": 62,
+              "chronaxie": 128
+            }
+          ],
+          "totalChronaxie": 384
+        }
+      ]
+    },
+    {
+      "params": {
+        "style": "ballad",
+        "mood": "sad",
+        "key": "Am"
+      },
+      "minMidi": 67,
+      "maxMidi": 79,
+      "melody": [
+        {
+          "sentence": [
+            {
+              "midi": 69,
+              "chronaxie": 64
+            },
+            {
+              "midi": 71,
+              "chronaxie": 64
+            },
+            {
+              "midi": 72,
+              "chronaxie": 64
+            },
+            {
+              "midi": 74,
+              "chronaxie": 64
+            },
+            {
+              "midi": 76,
+              "chronaxie": 64
+            }
+          ],
+          "totalChronaxie": 320
+        },
+        {
+          "sentence": [
+            {
+              "midi": 74,
+              "chronaxie": 64
+            },
+            {
+              "midi": 72,
+              "chronaxie": 64
+            },
+            {
+              "midi": 71,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            }
+          ],
+          "totalChronaxie": 320
+        },
+        {
+          "sentence": [
+            {
+              "midi": 69,
+              "chronaxie": 64
+            },
+            {
+              "midi": 71,
+              "chronaxie": 64
+            },
+            {
+              "midi": 72,
+              "chronaxie": 64
+            },
+            {
+              "midi": 74,
+              "chronaxie": 64
+            },
+            {
+              "midi": 71,
+              "chronaxie": 64
+            }
+          ],
+          "totalChronaxie": 320
+        },
+        {
+          "sentence": [
+            {
+              "midi": 69,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 64
+            },
+            {
+              "midi": 72,
+              "chronaxie": 64
+            },
+            {
+              "midi": 69,
+              "chronaxie": 128
+            }
+          ],
+          "totalChronaxie": 384
+        }
+      ]
+    },
+    {
+      "params": {
+        "style": "classical",
+        "mood": "calm"
+      },
+      "minMidi": 1,
+      "melody": [
+        {
+          "sentence": [
+            {
+              "midi": 60,
+              "chronaxie": 64
+            },
+            {
+              "midi": 62,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 32
+            },
+            {
+              "midi": 60,
+              "chronaxie": 32
+            },
+            {
+              "midi": 62,
+              "chronaxie": 128
+            }
+          ],
+          "totalChronaxie": 320
+        },
+        {
+          "sentence": [
+            {
+              "midi": 62,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 64
+            },
+            {
+              "midi": 66,
+              "chronaxie": 32
+            },
+            {
+              "midi": 62,
+              "chronaxie": 32
+            },
+            {
+              "midi": 64,
+              "chronaxie": 128
+            }
+          ],
+          "totalChronaxie": 320
+        },
+        {
+          "sentence": [
+            {
+              "midi": 64,
+              "chronaxie": 64
+            },
+            {
+              "midi": 65,
+              "chronaxie": 64
+            },
+            {
+              "midi": 67,
+              "chronaxie": 32
+            },
+            {
+              "midi": 64,
+              "chronaxie": 32
+            },
+            {
+              "midi": 65,
+              "chronaxie": 128
+            }
+          ],
+          "totalChronaxie": 320
+        },
+        {
+          "sentence": [
+            {
+              "midi": 67,
+              "chronaxie": 64
+            },
+            {
+              "midi": 65,
+              "chronaxie": 64
+            },
+            {
+              "midi": 64,
+              "chronaxie": 32
+            },
+            {
+              "midi": 62,
+              "chronaxie": 32
+            },
+            {
+              "midi": 60,
+              "chronaxie": 128
+            }
+          ],
+          "totalChronaxie": 320
+        }
+      ]
+    },
+    {
+      "params": {
+        "style": "classical",
+        "mood": "calm"
+      },
+      "minMidi": 60,
+      "maxMidi": 67,
+      "melody": [
+        {
+          "sentence": [
+            {
+              "midi": 60,
+              "chronaxie": 192
+            },
+            {
+              "midi": 62,
+              "chronaxie": 192
+            },
+            {
+              "midi": 64,
+              "chronaxie": 96
+            },
+            {
+              "midi": 60,
+              "chronaxie": 96
+            },
+            {
+              "midi": 62,
+              "chronaxie": 384
+            }
+          ],
+          "totalChronaxie": 960
+        },
+        {
+          "sentence": [
+            {
+              "midi": 62,
+              "chronaxie": 192
+            },
+            {
+              "midi": 64,
+              "chronaxie": 192
+            },
+            {
+              "midi": 66,
+              "chronaxie": 96
+            },
+            {
+              "midi": 62,
+              "chronaxie": 96
+            },
+            {
+              "midi": 64,
+              "chronaxie": 384
+            }
+          ],
+          "totalChronaxie": 960
+        },
+        {
+          "sentence": [
+            {
+              "midi": 64,
+              "chronaxie": 192
+            },
+            {
+              "midi": 65,
+              "chronaxie": 192
+            },
+            {
+              "midi": 67,
+              "chronaxie": 96
+            },
+            {
+              "midi": 64,
+              "chronaxie": 96
+            },
+            {
+              "midi": 65,
+              "chronaxie": 384
+            }
+          ],
+          "totalChronaxie": 960
+        },
+        {
+          "sentence": [
+            {
+              "midi": 67,
+              "chronaxie": 192
+            },
+            {
+              "midi": 65,
+              "chronaxie": 192
+            },
+            {
+              "midi": 64,
+              "chronaxie": 96
+            },
+            {
+              "midi": 62,
+              "chronaxie": 96
+            },
+            {
+              "midi": 60,
+              "chronaxie": 384
+            }
+          ],
+          "totalChronaxie": 960
+        }
+      ]
+    },
+    {
+      "params": {
+        "style": "classical",
+        "mood": "calm"
+      },
+      "minMidi": 60,
+      "maxMidi": 67,
+      "melody": [
+        {
+          "sentence": [
+            {
+              "midi": 60,
+              "chronaxie": 256
+            },
+            {
+              "midi": 62,
+              "chronaxie": 256
+            },
+            {
+              "midi": 64,
+              "chronaxie": 128
+            },
+            {
+              "midi": 60,
+              "chronaxie": 128
+            },
+            {
+              "midi": 62,
+              "chronaxie": 512
+            }
+          ],
+          "totalChronaxie": 1600
+        },
+        {
+          "sentence": [
+            {
+              "midi": 62,
+              "chronaxie": 256
+            },
+            {
+              "midi": 64,
+              "chronaxie": 256
+            },
+            {
+              "midi": 66,
+              "chronaxie": 128
+            },
+            {
+              "midi": 62,
+              "chronaxie": 128
+            },
+            {
+              "midi": 64,
+              "chronaxie": 512
+            }
+          ],
+          "totalChronaxie": 1600
+        },
+        {
+          "sentence": [
+            {
+              "midi": 64,
+              "chronaxie": 256
+            },
+            {
+              "midi": 65,
+              "chronaxie": 256
+            },
+            {
+              "midi": 67,
+              "chronaxie": 128
+            },
+            {
+              "midi": 64,
+              "chronaxie": 128
+            },
+            {
+              "midi": 65,
+              "chronaxie": 512
+            }
+          ],
+          "totalChronaxie": 1600
+        },
+        {
+          "sentence": [
+            {
+              "midi": 67,
+              "chronaxie": 256
+            },
+            {
+              "midi": 65,
+              "chronaxie": 256
+            },
+            {
+              "midi": 64,
+              "chronaxie": 128
+            },
+            {
+              "midi": 62,
+              "chronaxie": 128
+            },
+            {
+              "midi": 60,
+              "chronaxie": 512
+            }
+          ],
+          "totalChronaxie": 1600
+        }
+      ]
+    },
+    {
+      "params": {
+        "style": "classical",
+        "mood": "calm",
+        "key": "C"
+      },
+      "minMidi": 60,
+      "maxMidi": 69,
+      "melody": [
+        {
+          "sentence": [
+            { "midi": 60, "chronaxie": 64 },
+            { "midi": 62, "chronaxie": 64 },
+            { "midi": 64, "chronaxie": 64 },
+            { "midi": 65, "chronaxie": 64 },
+            { "midi": 67, "chronaxie": 64 },
+            { "midi": 69, "chronaxie": 64 },
+            { "midi": 67, "chronaxie": 64 }
+          ],
+          "totalChronaxie": 448
+        },
+        {
+          "sentence": [
+            { "midi": 67, "chronaxie": 64 },
+            { "midi": 65, "chronaxie": 64 },
+            { "midi": 64, "chronaxie": 64 },
+            { "midi": 62, "chronaxie": 64 },
+            { "midi": 64, "chronaxie": 64 },
+            { "midi": 65, "chronaxie": 64 },
+            { "midi": 67, "chronaxie": 64 }
+          ],
+          "totalChronaxie": 448
+        },
+        {
+          "sentence": [
+            { "midi": 67, "chronaxie": 64 },
+            { "midi": 69, "chronaxie": 64 },
+            { "midi": 67, "chronaxie": 64 },
+            { "midi": 65, "chronaxie": 64 },
+            { "midi": 64, "chronaxie": 64 },
+            { "midi": 62, "chronaxie": 64 },
+            { "midi": 60, "chronaxie": 64 }
+          ],
+          "totalChronaxie": 448
+        },
+        {
+          "sentence": [
+            { "midi": 60, "chronaxie": 64 },
+            { "midi": 62, "chronaxie": 64 },
+            { "midi": 64, "chronaxie": 64 },
+            { "midi": 65, "chronaxie": 64 },
+            { "midi": 67, "chronaxie": 64 },
+            { "midi": 64, "chronaxie": 64 },
+            { "midi": 60, "chronaxie": 128 }
+          ],
+          "totalChronaxie": 512
+        }
+      ]
+    },
+    {
+      "params": {
+        "style": "folk",
+        "mood": "bright",
+        "key": "G"
+      },
+      "minMidi": 67,
+      "maxMidi": 76,
+      "melody": [
+        {
+          "sentence": [
+            { "midi": 67, "chronaxie": 64 },
+            { "midi": 69, "chronaxie": 64 },
+            { "midi": 71, "chronaxie": 64 },
+            { "midi": 72, "chronaxie": 64 },
+            { "midi": 74, "chronaxie": 64 },
+            { "midi": 71, "chronaxie": 64 },
+            { "midi": 69, "chronaxie": 64 }
+          ],
+          "totalChronaxie": 448
+        },
+        {
+          "sentence": [
+            { "midi": 69, "chronaxie": 64 },
+            { "midi": 71, "chronaxie": 64 },
+            { "midi": 72, "chronaxie": 64 },
+            { "midi": 74, "chronaxie": 64 },
+            { "midi": 76, "chronaxie": 64 },
+            { "midi": 74, "chronaxie": 64 },
+            { "midi": 72, "chronaxie": 64 }
+          ],
+          "totalChronaxie": 448
+        },
+        {
+          "sentence": [
+            { "midi": 71, "chronaxie": 64 },
+            { "midi": 72, "chronaxie": 64 },
+            { "midi": 74, "chronaxie": 64 },
+            { "midi": 76, "chronaxie": 64 },
+            { "midi": 74, "chronaxie": 64 },
+            { "midi": 72, "chronaxie": 64 },
+            { "midi": 71, "chronaxie": 64 }
+          ],
+          "totalChronaxie": 448
+        },
+        {
+          "sentence": [
+            { "midi": 74, "chronaxie": 64 },
+            { "midi": 72, "chronaxie": 64 },
+            { "midi": 71, "chronaxie": 64 },
+            { "midi": 69, "chronaxie": 64 },
+            { "midi": 71, "chronaxie": 64 },
+            { "midi": 69, "chronaxie": 64 },
+            { "midi": 67, "chronaxie": 128 }
+          ],
+          "totalChronaxie": 512
+        }
       ]
     }
-  ],
-  "level": "样本数据",
-  "timestamp": "2026-06-23 10:32:49"
+  ]
 }

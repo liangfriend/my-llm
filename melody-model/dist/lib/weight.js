@@ -5,6 +5,7 @@ exports.calcParamsSimilarityWeight = calcParamsSimilarityWeight;
 exports.calcExactMatchWeight = calcExactMatchWeight;
 exports.calcMelodyLineSimilarityWeight = calcMelodyLineSimilarityWeight;
 exports.calcChronaxieProximityWeight = calcChronaxieProximityWeight;
+exports.calcReverseMidiMatchBonus = calcReverseMidiMatchBonus;
 exports.weightedRandomPick = weightedRandomPick;
 const weightConfig_1 = require("./weightConfig");
 /**
@@ -47,7 +48,7 @@ function calcParamsSimilarityWeight(exampleParams = {}, requestParams = {}) {
     });
     return score;
 }
-/** 精确匹配维度权重（midi、chronaxie、pinyin 等，供第 4、5 步使用） */
+/** 精确匹配维度权重（midi、chronaxie 等，供第 4 步使用） */
 function calcExactMatchWeight(isMatch) {
     return isMatch ? weightConfig_1.WEIGHT_CONFIG.exactMatch.matchFactor : weightConfig_1.WEIGHT_CONFIG.exactMatch.mismatchFactor;
 }
@@ -60,6 +61,24 @@ function calcMelodyLineSimilarityWeight(similarity) {
 /** 目标时值接近度权重：离目标越远权重越低 */
 function calcChronaxieProximityWeight(sampleChronaxie, targetChronaxie) {
     return 1 / (1 + Math.abs(sampleChronaxie - targetChronaxie));
+}
+/** 从句尾向前逐音比对 midi，每相同一个累加 bonus（用于 preSentence 与样本上一句） */
+function calcReverseMidiMatchBonus(requestMelody, sampleMelody, perMatch) {
+    if (!requestMelody.length || !sampleMelody.length || perMatch <= 0) {
+        return 0;
+    }
+    let bonus = 0;
+    let reqIdx = requestMelody.length - 1;
+    let sampleIdx = sampleMelody.length - 1;
+    while (reqIdx >= 0 && sampleIdx >= 0) {
+        if (requestMelody[reqIdx].midi !== sampleMelody[sampleIdx].midi) {
+            break;
+        }
+        bonus += perMatch;
+        reqIdx -= 1;
+        sampleIdx -= 1;
+    }
+    return bonus;
 }
 /** 按权重加权随机选取一项 */
 function weightedRandomPick(items) {

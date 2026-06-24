@@ -7,7 +7,6 @@ exports.isRestMidi = isRestMidi;
 exports.clampMidi = clampMidi;
 exports.normalizeChronaxie = normalizeChronaxie;
 exports.sanitizeNote = sanitizeNote;
-exports.countLyricsInMelody = countLyricsInMelody;
 exports.resolveTargetNoteLength = resolveTargetNoteLength;
 exports.parsePositiveInt = parsePositiveInt;
 exports.parseOptionalMidiBound = parseOptionalMidiBound;
@@ -84,35 +83,20 @@ function normalizeChronaxie(value, rules) {
     return closest;
 }
 // 安全的解构 note
-function sanitizeNote(note = {}, lyric, rules) {
+function sanitizeNote(note = {}, rules) {
     var _a;
     const rest = isRestMidi(note.midi);
     const midi = rest ? 0 : (_a = clampMidi(note.midi)) !== null && _a !== void 0 ? _a : 60;
     const effectiveRules = rules !== null && rules !== void 0 ? rules : resolveChronaxieRules(undefined, undefined);
     const chronaxie = normalizeChronaxie(note.chronaxie, effectiveRules);
-    const lyrics = rest ? undefined : lyric !== undefined ? lyric : note.lyrics;
-    return { midi, chronaxie, lyrics };
-}
-/** 统计一句旋律中已分配的歌词字符总数 */
-function countLyricsInMelody(melody) {
-    return melody.reduce((sum, note) => {
-        if (!note.lyrics)
-            return sum;
-        return sum + Array.from(note.lyrics).length;
-    }, 0);
+    return { midi, chronaxie };
 }
 /**
  * 解析目标音符长度。
- * 有歌词时至少为歌词字数；无歌词无 totalNoteLength 时用 DEFAULT_NOTE_LENGTH（6）。
+ * 未传 totalNoteLength 时使用 DEFAULT_NOTE_LENGTH（6）。
  */
-function resolveTargetNoteLength(textLength, totalNoteLength) {
+function resolveTargetNoteLength(totalNoteLength) {
     const requested = parsePositiveInt(totalNoteLength);
-    if (textLength > 0) {
-        if (requested === null || requested < textLength) {
-            return textLength;
-        }
-        return requested;
-    }
     if (requested !== null) {
         return requested;
     }

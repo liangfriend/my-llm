@@ -77,20 +77,21 @@ export function calcSampleParamsWeight(
  * 2. params 权重计算 + 中位数过滤（未传 params 时跳过中位数过滤，全部保留）
  */
 export function filterSamplesStep2(state: GenerationState, examples: TrainingExample[]): void {
+  // 在样本范围内
   const midiFiltered = examples.filter(example => isSampleWithinRequestMidiRange(example, state));
-
   if (!state.params) {
     state.filteredSamples = midiFiltered;
     state.sampleWeights = midiFiltered.map(() => 1);
     return;
   }
-
+  // 标签相似权重
   const weights = midiFiltered.map(example => calcSampleParamsWeight(example, state));
   const threshold = median(weights);
 
   const filteredSamples: TrainingExample[] = [];
   const sampleWeights: number[] = [];
   midiFiltered.forEach((example, index) => {
+    // 过滤出来权重达标的样本
     if (weights[index] >= threshold) {
       filteredSamples.push(example);
       sampleWeights.push(weights[index]);

@@ -3,20 +3,19 @@ import { ref } from 'vue';
 import MelodyEditor from './components/MelodyEditor.vue';
 import SampleMelodyEditor from './components/SampleMelodyEditor.vue';
 import ParamEditor from './components/ParamEditor.vue';
-import {playerManager} from "@jsh/note-player";
-import {InstrumentEnum} from "@jsh/note-player/enum";
-import {flattenSampleMelody, melodyToToneSeq} from "./utils.js";
+import { flattenSampleMelody } from './utils.js';
+import { playMelody, stopMelody } from './jPlayerPlay.js';
 
 const apiBase = ref('/api');
 
-const text = ref('');
 const totalNoteLength = ref(null);
 const totalChronaxie = ref(null);
 const minChronaxie = ref(null);
 const minChronaxieInterval = ref(null);
 const minMidi = ref(null);
 const maxMidi = ref(null);
-const preSentence = ref([{ midi: 60, chronaxie: 128, lyrics: '' }]);
+const stableEnding = ref(false);
+const preSentence = ref([{ midi: 60, chronaxie: 128 }]);
 const params = ref([
   { key: 'style', value: 'classical' },
   { key: 'mood', value: 'calm' },
@@ -26,13 +25,17 @@ const generateResult = ref(null);
 const generateError = ref('');
 const loadingGenerate = ref(false);
 
-const trainSentences = ref([[{ midi: 62, chronaxie: 128, lyrics: '' }]]);
+const trainSentences = ref([[{ midi: 62, chronaxie: 128 }]]);
 const trainMinMidi = ref(null);
 const trainMaxMidi = ref(null);
-const trainParams = ref([{ key: 'style', value: 'classical' }, { key: 'mood', value: 'calm' }]);
+const trainParams = ref([
+  { key: 'style', value: 'classical' },
+  { key: 'mood', value: 'calm' },
+]);
 const trainError = ref('');
 const trainMessage = ref('');
 const loadingTrain = ref(false);
+const playing = ref(false);
 
 function buildUrl(path) {
   const base = (apiBase.value || '').trim().replace(/\/$/, '');
@@ -55,21 +58,22 @@ function normalizeMelody(list) {
         !Number.isFinite(chronaxieRaw)
           ? undefined
           : chronaxieRaw;
-      const lyrics = note.lyrics === '' || note.lyrics === undefined ? undefined : note.lyrics;
-      return { midi, chronaxie, lyrics };
+      return { midi, chronaxie };
     })
-    .filter(
-      n =>
-        n.midi !== undefined ||
-        n.chronaxie !== undefined ||
-        (n.lyrics !== undefined && n.lyrics !== ''),
-    );
+    .filter(n => n.midi !== undefined || n.chronaxie !== undefined);
 }
 
 function normalizeSampleMelody(sentences) {
   return (sentences || [])
     .map(sentence => normalizeMelody(sentence))
     .filter(sentence => sentence.length > 0);
+}
+
+function buildTrainMelodyPayload(sentences) {
+  return normalizeSampleMelody(sentences).map(sentence => ({
+    sentence,
+    totalChronaxie: sentence.reduce((sum, note) => sum + Number(note.chronaxie || 0), 0),
+  }));
 }
 
 function inferMidiRangeFromMelody(sampleMelody) {
@@ -105,7 +109,7 @@ async function postJson(path, payload) {
     data = null;
   }
   if (!response.ok) {
-    const message = (data && data.error) || response.statusText || 'Request failed';
+    const message = (data && (data.message || data.error)) || response.statusText || 'Request failed';
     throw new Error(message);
   }
   return data;
@@ -119,7 +123,6 @@ async function runGenerate() {
     const payload = {};
     const paramsObj = paramsToObject(params.value);
     const notes = normalizeMelody(preSentence.value);
-    if (text.value.trim()) payload.text = text.value;
     if (notes.length) payload.preSentence = notes;
     const noteLength = Number(totalNoteLength.value);
     if (Number.isFinite(noteLength) && noteLength > 0) {
@@ -146,10 +149,11 @@ async function runGenerate() {
       payload.maxMidi = Math.round(maxMidiNumber);
     }
     if (Object.keys(paramsObj).length) payload.params = paramsObj;
+    if (stableEnding.value) payload.stableEnding = true;
 
     const data = await postJson('/melody/generate', payload);
     if (data?.state === 'error') {
-      throw new Error('生成失败（state: error）');
+      throw new Error(data?.message || '生成失败（state: error）');
     }
     generateResult.value = data;
   } catch (err) {
@@ -157,17 +161,6 @@ async function runGenerate() {
   } finally {
     loadingGenerate.value = false;
   }
-}
-
-function applyLyricsToPreSentence() {
-  const chars = Array.from(text.value || '');
-  if (!chars.length) return;
-  const next = [...preSentence.value];
-  chars.forEach((char, idx) => {
-    const existing = next[idx] || { midi: '', chronaxie: '', lyrics: '' };
-    next[idx] = { ...existing, lyrics: char };
-  });
-  preSentence.value = next;
 }
 
 function copyPreSentenceToTraining() {
@@ -191,7 +184,7 @@ async function sendTraining() {
   trainError.value = '';
   trainMessage.value = '';
   try {
-    const melody = normalizeSampleMelody(trainSentences.value);
+    const melody = buildTrainMelodyPayload(trainSentences.value);
     if (!melody.length) {
       throw new Error('训练数据至少包含一句、且每句至少一条 note');
     }
@@ -222,20 +215,58 @@ function fillTrainMidiRangeFromMelody() {
   trainMinMidi.value = range.min;
   trainMaxMidi.value = range.max;
 }
-const generateApiVisible = ref(true)
+
+const generateApiVisible = ref(true);
 function switchGenerateApiVisible() {
-    generateApiVisible.value = !generateApiVisible.value
+  generateApiVisible.value = !generateApiVisible.value;
 }
 
+async function play(melodyInput) {
+  const flat = flattenSampleMelody(melodyInput);
+  playing.value = true;
+  generateError.value = '';
+  try {
+    await playMelody(flat);
+  } catch (err) {
+    generateError.value = err.message || '播放失败';
+  } finally {
+    playing.value = false;
+  }
+}
 
-function play(melodyInput) {
-    const flat = flattenSampleMelody(melodyInput);
-    const seq = melodyToToneSeq(flat);
-    const toneSeq = playerManager.generateToneSequence(seq)
-    const player = playerManager.add('test', toneSeq, {
-        instrument: InstrumentEnum.acoustic_grand_piano,
-    })
-    playerManager.play()
+/** 上一句 + 当前句连续播放 */
+async function playDualSentence() {
+  const pre = normalizeMelody(preSentence.value);
+  const current = normalizeMelody(generateResult.value?.melody);
+  if (!pre.length) {
+    generateError.value = '请先填写 preSentence 上一句';
+    return;
+  }
+  if (!current.length) {
+    generateError.value = '请先生成当前句';
+    return;
+  }
+  playing.value = true;
+  generateError.value = '';
+  try {
+    await playMelody([...pre, ...current]);
+  } catch (err) {
+    generateError.value = err.message || '播放失败';
+  } finally {
+    playing.value = false;
+  }
+}
+
+function canPlayDualSentence() {
+  return (
+    normalizeMelody(preSentence.value).length > 0 &&
+    (generateResult.value?.melody?.length ?? 0) > 0
+  );
+}
+
+async function stop() {
+  await stopMelody();
+  playing.value = false;
 }
 </script>
 
@@ -243,16 +274,18 @@ function play(melodyInput) {
   <div class="page">
     <header class="hero">
       <div>
-          <p class="eyebrow">melody-console</p>
+        <p class="eyebrow">melody-console</p>
 
         <h1>连接 melody-model</h1>
         <p class="muted">
-          编辑 <code>{ midi, chronaxie, lyrics }</code>[]，一键调用生成与训练接口。
+          编辑 <code>{ midi, chronaxie }</code>[]，一键调用生成与训练接口。
         </p>
         <div class="chip-row">
           <span class="pill">POST /melody/generate</span>
           <span class="pill">POST /melody/train</span>
-            <button @click="switchGenerateApiVisible">{{ generateApiVisible?'隐藏生成接口':'显示生成接口' }}</button>
+          <button @click="switchGenerateApiVisible">
+            {{ generateApiVisible ? '隐藏生成接口' : '显示生成接口' }}
+          </button>
         </div>
       </div>
       <div class="api-box">
@@ -274,26 +307,16 @@ function play(melodyInput) {
           </button>
         </div>
 
-        <p class="muted">
-          所有参数可选；未填表示该维度不做限制。默认生成 6 个音符。
-        </p>
+        <p class="muted">所有参数可选；未填 totalNoteLength 时默认生成 6 个音符。</p>
 
         <div class="form-grid multi-cols">
-          <label>
-            text / 歌词（可选）
-            <textarea
-              v-model="text"
-              rows="3"
-              placeholder="填写歌词；长度可决定目标音符数"
-            ></textarea>
-          </label>
           <label>
             totalNoteLength（可选）
             <input
               v-model.number="totalNoteLength"
               type="number"
               min="1"
-              placeholder="默认 6 或歌词字数"
+              placeholder="默认 6"
             />
           </label>
           <label>
@@ -343,6 +366,10 @@ function play(melodyInput) {
               placeholder="不填则不限制"
             />
           </label>
+          <label class="checkbox-row">
+            <input v-model="stableEnding" type="checkbox" />
+            stableEnding（排除下一句句尾 2/4/5/7 级）
+          </label>
         </div>
 
         <ParamEditor
@@ -354,11 +381,10 @@ function play(melodyInput) {
         <MelodyEditor
           v-model="preSentence"
           title="preSentence 上一句（可选）"
-          hint="一维数组；有值时按「上一句 → 当前句」生成。midi=0 为休止符。"
+          hint="一维数组；有值时按「上一句 → 当前句」生成。双句播放会先播本句再播生成结果。"
         />
 
         <div class="inline-actions">
-          <button type="button" class="ghost" @click="applyLyricsToPreSentence">用 text 填充 preSentence 歌词</button>
           <button type="button" class="ghost" @click="copyPreSentenceToTraining">复制到训练区</button>
           <button type="button" class="ghost" @click="clearPreSentence">清空 preSentence</button>
         </div>
@@ -372,15 +398,24 @@ function play(melodyInput) {
             <p class="eyebrow">返回</p>
             <h2>生成结果</h2>
           </div>
-            <button
-              type="button"
-              class="ghost"
-              :disabled="!generateResult?.melody?.length"
-              @click="play(generateResult.melody)"
-            >
-              播放
-            </button>
-            <button type="button" class="ghost" @click="generateResult = null">清空</button>
+          <button
+            type="button"
+            class="ghost"
+            :disabled="!generateResult?.melody?.length || playing"
+            @click="play(generateResult.melody)"
+          >
+            {{ playing ? '播放中...' : '播放' }}
+          </button>
+          <button
+            type="button"
+            class="ghost"
+            :disabled="!canPlayDualSentence() || playing"
+            @click="playDualSentence"
+          >
+            双句播放
+          </button>
+          <button type="button" class="ghost" :disabled="!playing" @click="stop">停止</button>
+          <button type="button" class="ghost" @click="generateResult = null">清空</button>
         </div>
 
         <div v-if="!generateResult" class="placeholder">
@@ -392,19 +427,17 @@ function play(melodyInput) {
             <span class="pill light">notes: {{ generateResult.melody?.length ?? 0 }}</span>
             <span class="pill light">Σ chronaxie: {{ sumMelodyChronaxie(generateResult.melody) }}</span>
           </div>
-          <div class="note-grid note-grid-head">
+          <div class="note-grid note-grid-head note-grid-compact">
             <span>midi</span>
             <span>chronaxie</span>
-            <span>lyrics</span>
           </div>
           <div
             v-for="(note, idx) in generateResult.melody"
             :key="idx"
-            class="note-grid"
+            class="note-grid note-grid-compact"
           >
             <span>{{ note.midi }}</span>
             <span>{{ note.chronaxie }}</span>
-            <span>{{ note.lyrics || '-' }}</span>
           </div>
           <pre class="code-block">{{ JSON.stringify(generateResult, null, 2) }}</pre>
         </div>
@@ -417,14 +450,17 @@ function play(melodyInput) {
           <p class="eyebrow">训练</p>
           <h2>POST /melody/train</h2>
         </div>
-        <button type="button" class="ghost" @click="play(trainSentences)">播放</button>
+        <button type="button" class="ghost" :disabled="playing" @click="play(trainSentences)">
+          {{ playing ? '播放中...' : '播放' }}
+        </button>
+        <button type="button" class="ghost" :disabled="!playing" @click="stop">停止</button>
         <button type="button" class="primary" :disabled="loadingTrain" @click="sendTraining">
           {{ loadingTrain ? '提交中...' : '提交样本' }}
         </button>
       </div>
 
       <p class="muted">
-        melody 为二维数组（按句存储）；midi=0 表示休止符。写入
+        melody 为句对象数组 <code>{ sentence, totalChronaxie }</code>；midi=0 表示休止符。写入
         <code>training-data.json</code>。
       </p>
 
@@ -465,8 +501,8 @@ function play(melodyInput) {
 
       <SampleMelodyEditor
         v-model="trainSentences"
-        title="样本 melody（必填，二维数组）"
-        hint="每句一条旋律；多句样本用于「上一句 → 下一句」对照。"
+        title="样本 melody（必填）"
+        hint="每句一条旋律；多句样本用于「上一句 → 下一句」对照。提交时自动计算 totalChronaxie。"
       />
 
       <p v-if="trainError" class="error">{{ trainError }}</p>
@@ -474,3 +510,9 @@ function play(melodyInput) {
     </section>
   </div>
 </template>
+
+<style scoped>
+.note-grid-compact {
+  grid-template-columns: 1fr 1fr;
+}
+</style>

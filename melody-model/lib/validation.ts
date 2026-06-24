@@ -1,20 +1,26 @@
 ﻿/**
  * 训练样本与旋律数据的校验。
- * melody 为二维数组：外层=样本内各句，内层=该句音符列表。
+ * melody 为句对象数组：{ sentence, totalChronaxie }。
+ * 兼容旧版二维数组格式（自动计算 totalChronaxie）。
  */
 import {
-  countLyricsInMelody,
   isRestMidi,
   parseOptionalMidiBound,
   resolveChronaxieRules,
   sanitizeNote,
 } from './note';
-import { RawNote, SampleMelody, SanitizedNote, TrainingExample } from '../type';
+import {
+  RawNote,
+  SampleMelody,
+  SampleSentence,
+  SanitizedNote,
+  TrainingExample,
+} from '../type';
 
 export type ValidationResult = { error: string } | { example: TrainingExample };
 
 function sanitizeSentence(notes: RawNote[], rules: ReturnType<typeof resolveChronaxieRules>): SanitizedNote[] {
-  return notes.map(note => sanitizeNote(note, undefined, rules));
+  return notes.map(note => sanitizeNote(note, rules));
 }
 
 /** 校验单句旋律 */
@@ -35,6 +41,41 @@ function validateSentenceMelody(notes: unknown): { error: string } | { melody: S
   return { melody: sanitized };
 }
 
+/** 将单条 melody 项转为 SampleSentence */
+export function normalizeSampleSentenceItem(item: unknown): { error: string } | { sentence: SampleSentence } {
+  if (Array.isArray(item)) {
+    const validated = validateSentenceMelody(item);
+    if ('error' in validated) return validated;
+    const totalChronaxie = validated.melody.reduce((sum, note) => sum + note.chronaxie, 0);
+    return {
+      sentence: {
+        sentence: validated.melody,
+        totalChronaxie,
+      },
+    };
+  }
+
+  if (item === null || typeof item !== 'object') {
+    return { error: 'each item in melody must be a sentence array or { sentence, totalChronaxie }' };
+  }
+
+  const record = item as Record<string, unknown>;
+  const validated = validateSentenceMelody(record.sentence);
+  if ('error' in validated) return validated;
+
+  const parsedTotal = Number(record.totalChronaxie);
+  const computedTotal = validated.melody.reduce((sum, note) => sum + note.chronaxie, 0);
+  const totalChronaxie =
+    Number.isFinite(parsedTotal) && parsedTotal > 0 ? Math.round(parsedTotal) : computedTotal;
+
+  return {
+    sentence: {
+      sentence: validated.melody,
+      totalChronaxie,
+    },
+  };
+}
+
 /** 校验 POST /melody/train 请求体并转为 TrainingExample */
 export function validateTrainingExample(body: unknown): ValidationResult {
   if (body === null || typeof body !== 'object') {
@@ -51,16 +92,16 @@ export function validateTrainingExample(body: unknown): ValidationResult {
     return { error: 'melody is required' };
   }
   if (!Array.isArray(melody) || !melody.length) {
-    return { error: 'melody must be a non-empty 2D array' };
+    return { error: 'melody must be a non-empty array of sentences' };
   }
 
   const sampleMelody: SampleMelody = [];
-  for (const sentence of melody) {
-    const validated = validateSentenceMelody(sentence);
-    if ('error' in validated) {
-      return validated;
+  for (const item of melody) {
+    const normalized = normalizeSampleSentenceItem(item);
+    if ('error' in normalized) {
+      return normalized;
     }
-    sampleMelody.push(validated.melody);
+    sampleMelody.push(normalized.sentence);
   }
 
   let min = parseOptionalMidiBound(minMidi);
@@ -84,9 +125,4 @@ export function validateTrainingExample(body: unknown): ValidationResult {
 /** 校验单句旋律（兼容旧调用方） */
 export function validateIncomingMelody(melody: unknown): { error: string } | { melody: SanitizedNote[] } {
   return validateSentenceMelody(melody);
-}
-
-/** 统计样本中所有句子的歌词字符总数 */
-export function countSampleLyrics(melody: SampleMelody): number {
-  return melody.reduce((sum, sentence) => sum + countLyricsInMelody(sentence), 0);
 }

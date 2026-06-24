@@ -1,4 +1,5 @@
 import { WEIGHT_CONFIG } from './weightConfig';
+import { Melody } from '../type';
 
 /**
  * 多维度权重合成：各维度系数相乘。
@@ -48,7 +49,7 @@ export function calcParamsSimilarityWeight(
   return score;
 }
 
-/** 精确匹配维度权重（midi、chronaxie、pinyin 等，供第 4、5 步使用） */
+/** 精确匹配维度权重（midi、chronaxie 等，供第 4 步使用） */
 export function calcExactMatchWeight(isMatch: boolean): number {
   return isMatch ? WEIGHT_CONFIG.exactMatch.matchFactor : WEIGHT_CONFIG.exactMatch.mismatchFactor;
 }
@@ -66,6 +67,32 @@ export function calcChronaxieProximityWeight(
   targetChronaxie: number,
 ): number {
   return 1 / (1 + Math.abs(sampleChronaxie - targetChronaxie));
+}
+
+/** 从句尾向前逐音比对 midi，每相同一个累加 bonus（用于 preSentence 与样本上一句） */
+export function calcReverseMidiMatchBonus(
+  requestMelody: Melody,
+  sampleMelody: Melody,
+  perMatch: number,
+): number {
+  if (!requestMelody.length || !sampleMelody.length || perMatch <= 0) {
+    return 0;
+  }
+
+  let bonus = 0;
+  let reqIdx = requestMelody.length - 1;
+  let sampleIdx = sampleMelody.length - 1;
+
+  while (reqIdx >= 0 && sampleIdx >= 0) {
+    if (requestMelody[reqIdx].midi !== sampleMelody[sampleIdx].midi) {
+      break;
+    }
+    bonus += perMatch;
+    reqIdx -= 1;
+    sampleIdx -= 1;
+  }
+
+  return bonus;
 }
 
 /** 按权重加权随机选取一项 */

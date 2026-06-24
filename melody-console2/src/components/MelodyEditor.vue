@@ -21,7 +21,8 @@ const emit = defineEmits(['update:modelValue']);
 const notes = computed(() => props.modelValue || []);
 
 function updateNote(index, field, raw) {
-  const value = raw === '' ? '' : Number(raw);
+  const isNumeric = field !== 'lyrics';
+  const value = isNumeric ? (raw === '' ? '' : Number(raw)) : raw;
   const next = notes.value.map((note, idx) =>
     idx === index ? { ...note, [field]: value } : { ...note },
   );
@@ -29,7 +30,7 @@ function updateNote(index, field, raw) {
 }
 
 function addRow() {
-  emit('update:modelValue', [...notes.value, { midi: '', chronaxie: '' }]);
+  emit('update:modelValue', [...notes.value, { midi: '', chronaxie: '', lyrics: '' }]);
 }
 
 function removeRow(index) {
@@ -75,15 +76,16 @@ function noteState(note) {
         </button>
       </div>
     </div>
-    <div class="note-grid note-grid-head note-grid-compact">
+    <div class="note-grid note-grid-head">
       <span>midi</span>
       <span>chronaxie</span>
+      <span>lyrics</span>
       <span class="muted right">actions</span>
     </div>
     <div v-if="!notes.length" class="empty-row">
       <p class="muted">No notes yet. Add rows to describe your melody.</p>
     </div>
-    <div v-for="(note, index) in notes" :key="index" class="note-grid note-grid-compact">
+    <div v-for="(note, index) in notes" :key="index" class="note-grid">
       <input
         type="number"
         inputmode="numeric"
@@ -99,6 +101,12 @@ function noteState(note) {
         :value="note.chronaxie"
         @input="updateNote(index, 'chronaxie', $event.target.value)"
       />
+      <input
+        type="text"
+        :value="note.lyrics"
+        placeholder="lyrics (optional)"
+        @input="updateNote(index, 'lyrics', $event.target.value)"
+      />
       <div class="note-actions">
         <span v-if="noteState(note)" class="pill warn">{{ noteState(note) }}</span>
         <button type="button" class="ghost danger" @click="removeRow(index)">Remove</button>
@@ -106,9 +114,3 @@ function noteState(note) {
     </div>
   </div>
 </template>
-
-<style scoped>
-.note-grid-compact {
-  grid-template-columns: 1fr 1fr auto;
-}
-</style>
