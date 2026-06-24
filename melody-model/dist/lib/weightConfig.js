@@ -29,11 +29,21 @@ exports.WEIGHT_CONFIG = {
         /** 最终权重 = minFactor + similarity * (1 - minFactor) */
         minFactor: 0.1,
     },
-    /** 第 4 步：目标样本句候选过滤 */
+    /** 第 4 步：目标样本句选取 */
     targetSampleSentence: {
         /** 中位数反复过滤直到候选数 <= maxCandidates */
-        maxCandidates: 1000,
-        /** 有 preSentence 时，从句尾向前每匹配一个 midi 累加的权重 */
-        reverseMidiMatchBonus: 5,
+        maxCandidates: 10,
+        /** 下一句 totalChronaxie 与参数相等 */
+        chronaxieExact: 10,
+        /** 相差 16 */
+        chronaxieDiff16: 4,
+        /** 相差 32 */
+        chronaxieDiff32: 2,
+        /** 其余差值或未传 totalChronaxie 时 */
+        chronaxieDefault: 1,
+        /** 下一句音符数与 totalNoteLength 相等 */
+        noteLengthMatch: 2,
+        /** preSentence 句尾 midi 与样本当前句句尾 midi 相同 */
+        preSentenceLastMidiMatch: 5,
     },
 };

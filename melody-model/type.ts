@@ -80,6 +80,9 @@ export interface SampleSentenceInfo {
   melodyLine: number[];
   totalChronaxie: number;
   noteCount: number;
+  /** 样本当前句结尾音，供第 4 步与 preSentence 对照 */
+  lastMidi: number | null;
+  lastChronaxie: number | null;
   prevMelodyLine: number[] | null;
   prevTotalChronaxie: number | null;
   prevNoteCount: number | null;

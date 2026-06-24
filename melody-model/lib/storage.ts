@@ -52,7 +52,6 @@ export function loadTrainingData(): TrainingData {
     logger.log('样本路径', DATA_FILE);
     const content = fs.readFileSync(DATA_FILE, 'utf8');
     const data: unknown = JSON.parse(content);
-    console.log('样本数据', data);
     logger.log('样本数据', data);
     if (!data || !Array.isArray((data as TrainingData).examples)) {
       return { examples: [] };

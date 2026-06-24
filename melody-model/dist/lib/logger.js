@@ -25,6 +25,10 @@ const logger = winston_1.default.createLogger({
             level: 'error',
         }),
         new winston_1.default.transports.File({
+            filename: 'logs/debug.log',
+            level: 'debug',
+        }),
+        new winston_1.default.transports.File({
             filename: 'logs/info.log',
             format: winston_1.default.format.combine(ignoreErrorFilter(), baseFormat),
         }),

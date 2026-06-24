@@ -5,6 +5,8 @@ exports.calcParamsSimilarityWeight = calcParamsSimilarityWeight;
 exports.calcExactMatchWeight = calcExactMatchWeight;
 exports.calcMelodyLineSimilarityWeight = calcMelodyLineSimilarityWeight;
 exports.calcChronaxieProximityWeight = calcChronaxieProximityWeight;
+exports.calcStep4TotalChronaxieWeight = calcStep4TotalChronaxieWeight;
+exports.calcStep4PairWeight = calcStep4PairWeight;
 exports.calcReverseMidiMatchBonus = calcReverseMidiMatchBonus;
 exports.weightedRandomPick = weightedRandomPick;
 const weightConfig_1 = require("./weightConfig");
@@ -62,7 +64,37 @@ function calcMelodyLineSimilarityWeight(similarity) {
 function calcChronaxieProximityWeight(sampleChronaxie, targetChronaxie) {
     return 1 / (1 + Math.abs(sampleChronaxie - targetChronaxie));
 }
-/** 从句尾向前逐音比对 midi，每相同一个累加 bonus（用于 preSentence 与样本上一句） */
+/** 第 4 步：下一句 totalChronaxie 与参数对照权重（累加项） */
+function calcStep4TotalChronaxieWeight(sampleTotal, targetTotal) {
+    const cfg = weightConfig_1.WEIGHT_CONFIG.targetSampleSentence;
+    if (targetTotal === null) {
+        return cfg.chronaxieDefault;
+    }
+    const diff = Math.abs(sampleTotal - targetTotal);
+    if (diff === 0)
+        return cfg.chronaxieExact;
+    if (diff === 16)
+        return cfg.chronaxieDiff16;
+    if (diff === 32)
+        return cfg.chronaxieDiff32;
+    return cfg.chronaxieDefault;
+}
+/** 第 4 步：样本句对权重（累加：标签 + 下一句时值 + 音符数 + preSentence 句尾） */
+function calcStep4PairWeight(state, pair) {
+    var _a;
+    const cfg = weightConfig_1.WEIGHT_CONFIG.targetSampleSentence;
+    let weight = pair.current.sampleWeight;
+    weight += calcStep4TotalChronaxieWeight(pair.next.totalChronaxie, state.targetTotalChronaxie);
+    if (pair.next.sentence.length === state.targetNoteLength) {
+        weight += cfg.noteLengthMatch;
+    }
+    const preLast = (_a = state.preSentence) === null || _a === void 0 ? void 0 : _a.lastNote;
+    if (preLast && pair.current.lastMidi !== null && preLast.midi === pair.current.lastMidi) {
+        weight += cfg.preSentenceLastMidiMatch;
+    }
+    return weight;
+}
+/** 从句尾向前逐音比对 midi，每相同一个累加 bonus（遗留，当前第 4 步未使用） */
 function calcReverseMidiMatchBonus(requestMelody, sampleMelody, perMatch) {
     if (!requestMelody.length || !sampleMelody.length || perMatch <= 0) {
         return 0;
