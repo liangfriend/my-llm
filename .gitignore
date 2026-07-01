@@ -1,2 +1,4 @@
-/melody-console/node_modules
-/melody-model/node_modules
+node_modules
+dist
+logs
+*.log
