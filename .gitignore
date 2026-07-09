@@ -2,3 +2,11 @@ node_modules
 dist
 logs
 *.log
+
+# Python (pyTest)
+__pycache__/
+*.py[oc]
+build/
+wheels/
+*.egg-info
+.venv

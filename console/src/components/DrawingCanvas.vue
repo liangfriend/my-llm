@@ -5,11 +5,8 @@ const props = defineProps({
   size: { type: Number, default: 280 },
 });
 
-const emit = defineEmits(['sync-arr', 'sync-file']);
-
 const canvasRef = ref(null);
 const brushSize = ref(8);
-const syncHint = ref('');
 const isDrawing = ref(false);
 
 let ctx = null;
@@ -26,7 +23,6 @@ function resetCanvas() {
   if (!canvas || !ctx) return;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  syncHint.value = '';
 }
 
 function getPos(event) {
@@ -96,32 +92,33 @@ function canvasToArr() {
   return arr;
 }
 
-function syncToArr() {
+function isEmpty() {
   const arr = canvasToArr();
-  if (!arr.some(row => row.some(v => v === 1))) {
-    syncHint.value = '画布为空，请先绘制内容';
-    return;
-  }
-  emit('sync-arr', JSON.stringify(arr));
-  syncHint.value = `已同步为 arr（${arr[0].length}×${arr.length}）`;
+  return !arr.some(row => row.some(v => v === 1));
 }
 
-function syncToFile() {
-  const canvas = canvasRef.value;
-  canvas.toBlob((blob) => {
-    if (!blob) {
-      syncHint.value = '导出图片失败';
+function exportFile() {
+  return new Promise((resolve, reject) => {
+    const canvas = canvasRef.value;
+    if (!canvas) {
+      reject(new Error('画布未就绪'));
       return;
     }
-    const arr = canvasToArr();
-    if (!arr.some(row => row.some(v => v === 1))) {
-      syncHint.value = '画布为空，请先绘制内容';
+    if (isEmpty()) {
+      reject(new Error('画布为空，请先绘制内容'));
       return;
     }
-    emit('sync-file', new File([blob], 'drawing.png', { type: 'image/png' }));
-    syncHint.value = `已同步为 PNG 图片（${canvas.width}×${canvas.height}）`;
-  }, 'image/png');
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error('导出图片失败'));
+        return;
+      }
+      resolve(new File([blob], 'drawing.png', { type: 'image/png' }));
+    }, 'image/png');
+  });
 }
+
+defineExpose({ exportFile, resetCanvas, isEmpty });
 
 onMounted(initCanvas);
 </script>
@@ -133,11 +130,7 @@ onMounted(initCanvas);
         笔触大小 {{ brushSize }}px
         <input v-model.number="brushSize" type="range" min="1" max="24" step="1" />
       </label>
-      <div class="draw-actions">
-        <button type="button" class="ghost" @click="resetCanvas">重置画布</button>
-        <button type="button" class="ghost" @click="syncToArr">同步到 arr</button>
-        <button type="button" class="ghost" @click="syncToFile">同步到 file</button>
-      </div>
+      <button type="button" class="ghost" @click="resetCanvas">重置画布</button>
     </div>
 
     <div class="canvas-wrap">
@@ -154,10 +147,7 @@ onMounted(initCanvas);
       />
     </div>
 
-    <p v-if="syncHint" class="sync-hint" :class="{ warn: syncHint.includes('空') || syncHint.includes('失败') }">
-      {{ syncHint }}
-    </p>
-    <p v-else class="muted draw-tip">在白色画布上绘制黑色符号，再同步到 arr 或 file 后调用识别/训练。</p>
+    <p class="muted draw-tip">在白色画布上绘制黑色符号。</p>
   </div>
 </template>
 
@@ -190,12 +180,6 @@ onMounted(initCanvas);
   accent-color: #0ea5e9;
 }
 
-.draw-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
 .canvas-wrap {
   display: flex;
   justify-content: center;
@@ -219,14 +203,5 @@ onMounted(initCanvas);
 
 .draw-tip {
   font-size: 13px;
-}
-
-.sync-hint {
-  font-size: 13px;
-  color: #0369a1;
-}
-
-.sync-hint.warn {
-  color: #b45309;
 }
 </style>

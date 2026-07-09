@@ -1,57 +1,38 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
-import { postMsd } from './api.js';
+import { onMounted, ref } from 'vue';
+import { fetchClasses, getApiBase, postDetect, postSample } from './api.js';
 import DrawingCanvas from './components/DrawingCanvas.vue';
-import { getLabelZh, getLabels } from './symbols.js';
+import { STAFF_LABELS } from './symbols.js';
 
-const apiBase = ref('http://localhost:3001');
-const notation = ref('s');
-const arrText = ref('');
-const file = ref(null);
-const label = ref(0);
-const lr = ref('0.001');
+const canvasRef = ref(null);
+const className = ref('');
+const classOptions = ref([]);
 
 const detectLoading = ref(false);
-const trainLoading = ref(false);
+const sampleLoading = ref(false);
 const detectError = ref('');
-const trainError = ref('');
+const sampleError = ref('');
 const detectResult = ref(null);
-const trainResult = ref(null);
+const sampleResult = ref(null);
 
-const labelOptions = computed(() => getLabels(notation.value));
-
-watch(notation, () => {
-  label.value = labelOptions.value[0]?.value ?? 0;
+onMounted(async () => {
+  try {
+    const classes = await fetchClasses();
+    classOptions.value = classes;
+    className.value = classes[0] ?? '';
+  } catch {
+    classOptions.value = [];
+  }
 });
-
-function onFileChange(event) {
-  file.value = event.target.files?.[0] ?? null;
-}
-
-function clearFile() {
-  file.value = null;
-}
-
-function onCanvasSyncArr(json) {
-  arrText.value = json;
-  file.value = null;
-}
-
-function onCanvasSyncFile(nextFile) {
-  file.value = nextFile;
-  arrText.value = '';
-}
 
 async function runDetect() {
   detectLoading.value = true;
   detectError.value = '';
   detectResult.value = null;
+  sampleResult.value = null;
   try {
-    detectResult.value = await postMsd(apiBase.value, 'detect', {
-      notation: notation.value,
-      file: file.value,
-      arrText: arrText.value,
-    });
+    const file = await canvasRef.value.exportFile();
+    detectResult.value = await postDetect(file);
   } catch (err) {
     detectError.value = err.message || '识别失败';
   } finally {
@@ -59,39 +40,26 @@ async function runDetect() {
   }
 }
 
-async function runTrain() {
-  trainLoading.value = true;
-  trainError.value = '';
-  trainResult.value = null;
+async function runAddSample() {
+  sampleLoading.value = true;
+  sampleError.value = '';
+  sampleResult.value = null;
   try {
-    trainResult.value = await postMsd(apiBase.value, 'train', {
-      notation: notation.value,
-      file: file.value,
-      arrText: arrText.value,
-      label: label.value,
-      lr: lr.value,
-    });
+    if (!className.value) {
+      throw new Error('请选择符号类别');
+    }
+    const file = await canvasRef.value.exportFile();
+    sampleResult.value = await postSample(file, className.value);
   } catch (err) {
-    trainError.value = err.message || '训练失败';
+    sampleError.value = err.message || '保存失败';
   } finally {
-    trainLoading.value = false;
+    sampleLoading.value = false;
   }
 }
 
-function topProbs(probs, n = 5) {
-  if (!probs?.length) return [];
-  return probs
-    .map((p, i) => ({
-      index: i,
-      prob: p,
-      zh: getLabelZh(notation.value, i),
-    }))
-    .sort((a, b) => b.prob - a.prob)
-    .slice(0, n);
-}
-
-function labelZh(value) {
-  return getLabelZh(notation.value, value);
+function labelZh(name) {
+  const item = STAFF_LABELS.find(l => l.name === name);
+  return item?.zh ?? name;
 }
 </script>
 
@@ -100,66 +68,13 @@ function labelZh(value) {
     <header class="hero">
       <div>
         <p class="eyebrow">symbol-console</p>
-        <h1>线谱符号 CNN 控制台</h1>
-        <p class="muted">调用 <code>/msd/detect</code> 与 <code>/msd/train</code>，支持 file 或 arr 输入。</p>
-        <div class="chip-row">
-          <span class="pill">POST /msd/detect</span>
-          <span class="pill">POST /msd/train</span>
-        </div>
-      </div>
-      <div class="api-box">
-        <label>接口前缀</label>
-        <input v-model="apiBase" placeholder="http://localhost:3000" />
-        <p class="muted">默认直连后端；开发时也可填 <code>/api</code> 走 Vite 代理。</p>
+        <h1>线谱符号画板</h1>
+        <p class="muted">手绘符号，识别或加入训练样本。</p>
       </div>
     </header>
 
     <section class="panel">
-      <div class="panel-header">
-        <div>
-          <p class="eyebrow">输入</p>
-          <h2>公共参数</h2>
-        </div>
-      </div>
-      <p class="muted hint">file 与 arr 同时存在时，<strong>优先使用 arr</strong>。</p>
-
-      <div class="form-grid">
-        <label class="field">
-          谱式 notation
-          <select v-model="notation">
-            <option value="s">s — 线谱</option>
-            <option value="n">n — 简谱</option>
-          </select>
-        </label>
-        <label class="field">
-          上传 file
-          <input type="file" accept=".png,.jpg,.jpeg,.svg,.webp,image/*" @change="onFileChange" />
-        </label>
-      </div>
-
-      <div class="inline-actions">
-        <button type="button" class="ghost" :disabled="!file" @click="clearFile">清空文件</button>
-        <span v-if="file" class="muted">已选：{{ file.name }}</span>
-      </div>
-
-      <label class="field">
-        arr（JSON 二维数组，0=背景 1=笔画）
-        <textarea
-          v-model="arrText"
-          rows="6"
-          placeholder='[[0,1,0],[1,1,1],[0,1,0]]'
-        />
-      </label>
-    </section>
-
-    <section class="panel">
-      <div class="panel-header">
-        <div>
-          <p class="eyebrow">画板</p>
-          <h2>手绘输入</h2>
-        </div>
-      </div>
-      <DrawingCanvas @sync-arr="onCanvasSyncArr" @sync-file="onCanvasSyncFile" />
+      <DrawingCanvas ref="canvasRef" />
     </section>
 
     <section class="grid two">
@@ -167,77 +82,55 @@ function labelZh(value) {
         <div class="panel-header">
           <div>
             <p class="eyebrow">识别</p>
-            <h2>POST /msd/detect</h2>
+            <h2>POST /detect</h2>
           </div>
           <button type="button" class="primary" :disabled="detectLoading" @click="runDetect">
             {{ detectLoading ? '识别中...' : '识别' }}
           </button>
         </div>
+        <p class="muted hint">{{ getApiBase() }}/detect</p>
 
         <p v-if="detectError" class="error">{{ detectError }}</p>
 
         <div v-if="detectResult" class="result">
           <div class="meta-row">
-            <span class="pill light result-name">{{ labelZh(detectResult.label) }}</span>
-          </div>
-          <p class="muted section-title">Top 5 概率</p>
-          <div
-            v-for="item in topProbs(detectResult.probs)"
-            :key="item.index"
-            class="prob-row"
-          >
-            <span class="prob-name">{{ item.zh }}</span>
-            <span class="prob-bar-wrap">
-              <span class="prob-bar" :style="{ width: `${item.prob * 100}%` }" />
-            </span>
-            <span>{{ (item.prob * 100).toFixed(2) }}%</span>
+            <span class="pill light result-name">{{ labelZh(detectResult.class) }}</span>
+            <span class="pill light">置信度 {{ (detectResult.confidence * 100).toFixed(2) }}%</span>
           </div>
           <pre class="code-block">{{ JSON.stringify(detectResult, null, 2) }}</pre>
         </div>
         <div v-else class="placeholder">
-          <p class="muted">前向传播，返回预测类别与概率。</p>
+          <p class="muted">将当前画布发送到识别接口，查看返回结果。</p>
         </div>
       </div>
 
       <div class="panel">
         <div class="panel-header">
           <div>
-            <p class="eyebrow">训练</p>
-            <h2>POST /msd/train</h2>
+            <p class="eyebrow">样本</p>
+            <h2>添加到 samples</h2>
           </div>
-          <button type="button" class="primary" :disabled="trainLoading" @click="runTrain">
-            {{ trainLoading ? '训练中...' : '训练一步' }}
+          <button type="button" class="primary" :disabled="sampleLoading" @click="runAddSample">
+            {{ sampleLoading ? '保存中...' : '添加' }}
           </button>
         </div>
 
-        <div class="form-grid">
-          <label class="field">
-            训练符号 label
-            <select v-model.number="label">
-              <option v-for="opt in labelOptions" :key="opt.value" :value="opt.value">
-                {{ opt.zh }}
-              </option>
-            </select>
-          </label>
-          <label class="field">
-            lr（可选，默认 0.001）
-            <input v-model="lr" type="number" step="0.0001" min="0.0001" max="1" />
-          </label>
-        </div>
+        <label class="field">
+          符号类别
+          <select v-model="className">
+            <option v-for="name in classOptions" :key="name" :value="name">
+              {{ labelZh(name) }}（{{ name }}）
+            </option>
+          </select>
+        </label>
 
-        <p v-if="trainError" class="error">{{ trainError }}</p>
+        <p v-if="sampleError" class="error">{{ sampleError }}</p>
 
-        <div v-if="trainResult" class="result">
-          <div class="meta-row">
-            <span class="pill light">预测：{{ labelZh(trainResult.label) }}</span>
-            <span class="pill light">期望：{{ labelZh(trainResult.expectedLabel) }}</span>
-            <span class="pill light">loss：{{ trainResult.loss?.toFixed(4) }}</span>
-            <span class="pill light">{{ trainResult.weightsFile }}</span>
-          </div>
-          <pre class="code-block">{{ JSON.stringify(trainResult, null, 2) }}</pre>
+        <div v-if="sampleResult" class="result">
+          <pre class="code-block">{{ JSON.stringify(sampleResult, null, 2) }}</pre>
         </div>
         <div v-else class="placeholder">
-          <p class="muted">反向传播一步，更新 weights-{{ notation }}.json。</p>
+          <p class="muted">将当前画布保存到 samples/ 对应类别目录。</p>
         </div>
       </div>
     </section>
@@ -250,38 +143,10 @@ function labelZh(value) {
 }
 .field {
   color: #0f172a;
-}
-.section-title {
-  margin: 10px 0 6px;
-  font-size: 13px;
-}
-.prob-row {
-  display: grid;
-  grid-template-columns: minmax(120px, 1.4fr) 1fr 64px;
-  gap: 8px;
-  align-items: center;
-  font-size: 13px;
-  margin-bottom: 4px;
-}
-.prob-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-bottom: 12px;
 }
 .result-name {
   font-size: 15px;
   font-weight: 600;
-}
-.prob-bar-wrap {
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-.prob-bar {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, #0ea5e9, #0284c7);
-  border-radius: 4px;
 }
 </style>

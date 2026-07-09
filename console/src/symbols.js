@@ -1,4 +1,3 @@
-/** 线谱符号类别（与 model/enum.ts MUSIC_SYMBOL_S 一致） */
 export const STAFF_LABELS = [
   { value: 0, name: 'WHOLE_NOTE', zh: '全音符' },
 

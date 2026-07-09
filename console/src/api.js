@@ -1,51 +1,47 @@
-export function buildUrl(apiBase, path) {
-  const base = (apiBase || '').trim().replace(/\/$/, '');
-  return `${base}${path}`;
+const API_BASE = 'http://127.0.0.1:8005';
+
+export function getApiBase() {
+  return API_BASE;
 }
 
-/**
- * @param {string} apiBase
- * @param {'detect'|'train'} mode
- * @param {object} options
- * @param {'s'|'n'} options.notation
- * @param {File|null} options.file
- * @param {string} options.arrText
- * @param {number|undefined} options.label
- * @param {number|undefined} options.lr
- */
-export async function postMsd(apiBase, mode, options) {
-  const { notation, file, arrText, label, lr } = options;
+export async function fetchClasses() {
+  const response = await fetch(`${API_BASE}/classes`);
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.detail || response.statusText || '获取类别失败');
+  }
+  return data.classes ?? [];
+}
+
+export async function postDetect(file) {
   const form = new FormData();
-  form.append('notation', notation);
+  form.append('file', file);
 
-  const arrTrimmed = (arrText || '').trim();
-  if (arrTrimmed) {
-    JSON.parse(arrTrimmed);
-    form.append('arr', arrTrimmed);
-  } else if (file) {
-    form.append('file', file);
-  } else {
-    throw new Error('请上传 file 或填写 arr');
-  }
-
-  if (mode === 'train') {
-    if (label === undefined || label === null || label === '') {
-      throw new Error('train 必须选择 label');
-    }
-    form.append('label', String(label));
-    if (lr !== undefined && lr !== null && lr !== '') {
-      form.append('lr', String(lr));
-    }
-  }
-
-  const response = await fetch(buildUrl(apiBase, `/msd/${mode}`), {
+  const response = await fetch(`${API_BASE}/detect`, {
     method: 'POST',
     body: form,
   });
 
   const data = await response.json();
-  if (!response.ok || data?.ok === false) {
-    throw new Error(data?.error || response.statusText || '请求失败');
+  if (!response.ok) {
+    throw new Error(data?.detail || response.statusText || '识别失败');
+  }
+  return data;
+}
+
+export async function postSample(file, className) {
+  const form = new FormData();
+  form.append('file', file);
+  form.append('class_name', className);
+
+  const response = await fetch(`${API_BASE}/samples`, {
+    method: 'POST',
+    body: form,
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.detail || response.statusText || '保存失败');
   }
   return data;
 }
