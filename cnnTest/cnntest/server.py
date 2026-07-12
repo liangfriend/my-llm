@@ -9,26 +9,47 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 
-from cnntest.data import dataset, transform
+from cnntest.data import dataset, detect_transform
 from cnntest.models import SimpleCNN
 from cnntest.paths import DEFAULT_MODEL_PATH, SAMPLES_DIR
 
 model = None
 device = torch.device("cpu")
-classes = dataset.classes
+classes = []
+
+
+def _load_model_classes(state_dict, saved_classes):
+    if saved_classes:
+        return list(saved_classes)
+
+    num_classes = state_dict["fc2.weight"].shape[0]
+    if len(dataset.classes) == num_classes:
+        return list(dataset.classes)
+
+    if len(dataset.classes) > num_classes:
+        return list(dataset.classes[:num_classes])
+
+    raise RuntimeError(
+        f"Checkpoint has {num_classes} classes but samples/ only has "
+        f"{len(dataset.classes)}. Run `uv run train` to retrain."
+    )
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global model
+    global model, classes
 
     if not DEFAULT_MODEL_PATH.exists():
         raise FileNotFoundError(
             f"Model not found: {DEFAULT_MODEL_PATH}. Run `uv run train` first."
         )
 
-    model = SimpleCNN(num_classes=len(classes)).to(device)
-    model.load(DEFAULT_MODEL_PATH, device=device)
+    state_dict, saved_classes, num_classes = SimpleCNN.read_checkpoint(
+        DEFAULT_MODEL_PATH, device=device
+    )
+    classes = _load_model_classes(state_dict, saved_classes)
+    model = SimpleCNN(num_classes=num_classes).to(device)
+    model.load_state_dict(state_dict)
     model.eval()
     yield
 
@@ -44,7 +65,7 @@ app.add_middleware(
 
 @app.get("/classes")
 async def list_classes():
-    return {"classes": classes}
+    return {"classes": list(dataset.classes)}
 
 
 @app.post("/detect")
@@ -57,12 +78,12 @@ async def detect(file: UploadFile = File(...)):
 
     try:
         contents = await file.read()
-        image = Image.open(io.BytesIO(contents)).convert("RGB")
+        image = Image.open(io.BytesIO(contents)).convert("L")
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Invalid image file: {exc}") from exc
-
-    tensor = transform(image).unsqueeze(0).to(device)
-
+    # 这里把图片转换成张量，并添加一个维度，以便于模型输入
+    tensor = detect_transform(image).unsqueeze(0).to(device)
+    # no_grad: 梯度计算不参与计算图，减少内存占用和计算量
     with torch.no_grad():
         outputs = model(tensor)
         probabilities = torch.softmax(outputs, dim=1)
@@ -84,15 +105,12 @@ async def add_sample(
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="file must be an image")
 
-    if class_name not in classes:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unknown class: {class_name}. Valid: {classes}",
-        )
+    if not class_name or "/" in class_name or "\\" in class_name or ".." in class_name:
+        raise HTTPException(status_code=400, detail=f"Invalid class name: {class_name}")
 
     try:
         contents = await file.read()
-        image = Image.open(io.BytesIO(contents)).convert("RGB")
+        image = Image.open(io.BytesIO(contents)).convert("L")
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Invalid image file: {exc}") from exc
 
@@ -102,10 +120,17 @@ async def add_sample(
     save_path = class_dir / filename
     image.save(save_path)
 
+    count = sum(
+        1
+        for path in class_dir.iterdir()
+        if path.is_file() and path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
+    )
+
     return {
         "ok": True,
         "class": class_name,
         "path": str(save_path.relative_to(SAMPLES_DIR.parent)),
+        "count": count,
     }
 
 
