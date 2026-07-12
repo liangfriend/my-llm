@@ -1,3 +1,3 @@
-from cnntest.data.samples import dataset, loader, transform
+from cnntest.data.samples import dataset, detect_transform, loader, train_transform
 
-__all__ = ["dataset", "loader", "transform"]
+__all__ = ["dataset", "detect_transform", "loader", "train_transform"]

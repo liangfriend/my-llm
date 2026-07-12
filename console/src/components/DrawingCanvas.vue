@@ -1,12 +1,15 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+
+const BRUSH_SIZES = [4, 8, 16];
 
 const props = defineProps({
   size: { type: Number, default: 280 },
 });
 
 const canvasRef = ref(null);
-const brushSize = ref(8);
+const brushIndex = ref(BRUSH_SIZES.indexOf(8));
+const brushSize = computed(() => BRUSH_SIZES[brushIndex.value] ?? 8);
 const isDrawing = ref(false);
 
 let ctx = null;
@@ -118,7 +121,11 @@ function exportFile() {
   });
 }
 
-defineExpose({ exportFile, resetCanvas, isEmpty });
+function cycleBrushSize() {
+  brushIndex.value = (brushIndex.value + 1) % BRUSH_SIZES.length;
+}
+
+defineExpose({ exportFile, resetCanvas, isEmpty, cycleBrushSize, brushSize });
 
 onMounted(initCanvas);
 </script>
@@ -128,7 +135,13 @@ onMounted(initCanvas);
     <div class="draw-toolbar">
       <label class="brush-field">
         笔触大小 {{ brushSize }}px
-        <input v-model.number="brushSize" type="range" min="1" max="24" step="1" />
+        <input
+          v-model.number="brushIndex"
+          type="range"
+          min="0"
+          :max="BRUSH_SIZES.length - 1"
+          step="1"
+        />
       </label>
       <button type="button" class="ghost" @click="resetCanvas">重置画布</button>
     </div>

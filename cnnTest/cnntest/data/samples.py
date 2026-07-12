@@ -3,10 +3,26 @@ from torchvision import datasets, transforms
 
 from cnntest.paths import SAMPLES_DIR
 
-# 图像预处理
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),  # 缩放到 224×224 像素
-    transforms.ToTensor(),  # 转成 PyTorch 张量，像素值从 0–255 变成约 0–1 的浮点数
+INPUT_SIZE = 224
+MAX_TRANSLATE_PX = 20
+
+# 推理：灰度、固定缩放，不做随机增强
+detect_transform = transforms.Compose([
+    transforms.Resize((INPUT_SIZE, INPUT_SIZE)),
+    # 转换为灰度图，1 通道 png默认是3通道，需要转换成1通道
+    transforms.Grayscale(num_output_channels=1),
+    transforms.ToTensor(),
+])
+
+# 训练：灰度，在 224×224 画布上做 ±15° 旋转、±20px 平移
+train_transform = transforms.Compose([
+    transforms.Resize((INPUT_SIZE, INPUT_SIZE)),
+    transforms.RandomAffine(
+        degrees=15,
+        translate=(MAX_TRANSLATE_PX / INPUT_SIZE, MAX_TRANSLATE_PX / INPUT_SIZE),
+    ),
+    transforms.Grayscale(num_output_channels=1),
+    transforms.ToTensor(),
 ])
 
 # 读取数据集
@@ -21,7 +37,7 @@ transform = transforms.Compose([
 #     └── img4.jpg
 dataset = datasets.ImageFolder(
     root=str(SAMPLES_DIR),
-    transform=transform,
+    transform=train_transform,
 )
 
 # 批量加载

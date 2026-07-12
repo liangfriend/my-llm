@@ -37,3 +37,11 @@ $env:UV_OFFLINE=1; uv run serve
 ```powershell
 uv run python scripts/test_model.py
 ```
+
+
+## 注意事项
+
+当给samples加一个新的子文件夹时
+启动模型
+会加载旧的参数， 服务还能跑，但是只能识别旧的
+经过uv run tarin, 重启serve, 可以正常识别新符号

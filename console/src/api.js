@@ -4,15 +4,6 @@ export function getApiBase() {
   return API_BASE;
 }
 
-export async function fetchClasses() {
-  const response = await fetch(`${API_BASE}/classes`);
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data?.detail || response.statusText || '获取类别失败');
-  }
-  return data.classes ?? [];
-}
-
 export async function postDetect(file) {
   const form = new FormData();
   form.append('file', file);

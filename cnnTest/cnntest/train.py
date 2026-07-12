@@ -1,4 +1,5 @@
 import argparse
+import copy
 import shutil
 import sys
 import time
@@ -124,6 +125,9 @@ def train(epochs, lr, output, log_interval, plain_log):
     print()
 
     train_start = time.perf_counter()
+    best_acc = -1.0
+    best_epoch = 0
+    best_state = None
 
     for epoch in range(1, epochs + 1):
         metrics = run_epoch(
@@ -135,15 +139,23 @@ def train(epochs, lr, output, log_interval, plain_log):
             f"acc: {metrics['acc']:.1f}% | "
             f"time: {metrics['time']:.1f}s"
         )
+        if metrics["acc"] > best_acc:
+            best_acc = metrics["acc"]
+            best_epoch = epoch
+            best_state = copy.deepcopy(model.state_dict())
+            print(f"    new best acc: {best_acc:.1f}% at epoch {best_epoch}")
         print()
 
     total_time = time.perf_counter() - train_start
     save_path = Path(output)
     save_path.parent.mkdir(parents=True, exist_ok=True)
-    model.save(save_path)
+    if best_state is not None:
+        model.load_state_dict(best_state)
+    model.save(save_path, classes=dataset.classes)
 
     print("=== Done ===")
     print(f"total time: {total_time:.1f}s")
+    print(f"best acc: {best_acc:.1f}% at epoch {best_epoch}")
     print(f"model saved to {save_path}")
 
 
