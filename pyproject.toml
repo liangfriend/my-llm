@@ -1,0 +1,31 @@
+[project]
+name = "myllm"
+version = "0.1.0"
+description = "从零实现的小型 LLM：训练与对话接口"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "torch>=2.5.0",
+    "numpy>=2.0.0",
+    "tqdm>=4.66.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+train = "myllm.train:main"
+generate = "myllm.generate:main"
+chat = "myllm.chat:main"
+serve = "myllm.server:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["myllm*"]

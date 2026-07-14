@@ -1,12 +1,34 @@
-node_modules
-dist
-logs
-*.log
-
-# Python (pyTest)
+# Python
 __pycache__/
 *.py[oc]
+*.egg-info/
+.venv/
 build/
+dist/
 wheels/
-*.egg-info
-.venv
+
+# Train / run artifacts
+checkpoints/
+outputs/
+logs/
+*.log
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+
+# Data (keep dirs via .gitkeep; ignore large files)
+data/raw/**
+!data/raw/.gitkeep
+data/processed/**
+!data/processed/.gitkeep
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Node (if any later)
+node_modules/
