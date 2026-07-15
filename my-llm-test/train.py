@@ -45,6 +45,7 @@ def main() -> None:
     # 例如 ids = [a, b, c, d]
     #      x   = [a, b, c]
     #      y   = [b, c, d]   ← 每个位置预测「下一个」
+    # 这里加一维度，是为了方便批量处理，batch_size = 1。虽然这个例子只有 1 个样本，但这个技巧很常用。
     x = ids[:-1].unsqueeze(0)  # (1, T)
     y = ids[1:].unsqueeze(0)  # (1, T)
     print("x shape:", tuple(x.shape), " y shape:", tuple(y.shape))
