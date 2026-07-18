@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT / "checkpoints-test"))
 
 from tokenizer import CharTokenizer  # noqa: E402
 
-from model import TinyLM
+from my_llm_test.model import TinyLM
 
 
 def main() -> None:
@@ -52,7 +52,7 @@ def main() -> None:
         x = chunk[:-1].unsqueeze(0)  # (1, block_size)
         y = chunk[1:].unsqueeze(0)  # (1, block_size)
 
-        logits = model(x)
+        logits = model(x) # (B, T, vocab_size)
         loss = F.cross_entropy(
             logits.view(-1, tok.vocab_size),
             y.view(-1),

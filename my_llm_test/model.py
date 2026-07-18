@@ -37,6 +37,7 @@ class CausalSelfAttention(nn.Module):
         # 下三角 mask：1 表示「可以看」，0 表示「不能看」（未来）
         # 形状 (1, 1, block_size, block_size)，后面按 T 切片
         mask = torch.tril(torch.ones(block_size, block_size))
+        # 加两维兼容批量处理和多头
         self.register_buffer("mask", mask.view(1, 1, block_size, block_size))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -67,6 +68,8 @@ class CausalSelfAttention(nn.Module):
 
         # 6) 拼回 (B, T, C)，再投影
         y = y.transpose(1, 2).contiguous().view(B, T, C)
+        # 此时的y的向量： 字：[...语义上的v, ...语法上的v, ...,四个头]， 要经过一个全连接混在一起。但是混在一起不等于白干了。 
+        # 可以想象为四个编辑分别写了一段， 隐藏层相当于主编， 经过训练后主编可以完美的组合这四个编辑的片段。
         return self.c_proj(y)
 
 
@@ -99,9 +102,9 @@ class TinyLM(nn.Module):
         x = self.token_emb(idx) + self.pos_emb(pos)  # (B, T, n_embd)
 
         # 残差连接：x + Attention(LayerNorm(x))
-        # 位置 t 现在能「看」到前面的上下文了
+        # 位置 t 现在能「看」到前面的上下文了  +x防止自身内容丢失
         x = x + self.attn(self.ln(x))
-
+        # 最后经过一个全连接，输入 当前词及上文信息， 输出 当前词下一个词的概率
         logits = self.lm_head(x)  # (B, T, vocab_size)
         return logits
 
