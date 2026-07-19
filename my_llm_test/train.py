@@ -1,7 +1,4 @@
-"""最小训练循环：带位置编码的 TinyLM。
-
-取数改为：每次随机截一段长度为 block_size 的窗口。
-"""
+"""训练循环：多层 Block(Attn+MLP) 的 TinyLM。"""
 
 from __future__ import annotations
 
@@ -17,6 +14,8 @@ sys.path.insert(0, str(ROOT / "checkpoints-test"))
 from tokenizer import CharTokenizer  # noqa: E402
 
 from my_llm_test.model import TinyLM
+
+CHECKPOINT_DIR = ROOT / "checkpoints-test"
 
 
 def main() -> None:
@@ -35,18 +34,24 @@ def main() -> None:
     print("token 数:", len(data), " vocab_size:", tok.vocab_size)
 
     block_size = 32
-    model = TinyLM(vocab_size=tok.vocab_size, n_embd=64, block_size=block_size)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2)
+    model = TinyLM(
+        vocab_size=tok.vocab_size,
+        n_embd=64,
+        block_size=block_size,
+        n_head=4,
+        n_layer=4,
+        dropout=0.1,
+    )
+    n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"params: {n_params:,}")
 
-    # 语料太短时补一点，保证能切出 block_size+1
+    optimizer = torch.optim.AdamW(model.parameters(), lr=3e-3)
+
     if len(data) <= block_size:
         raise ValueError("语料太短，需要 > block_size 个 token")
 
     model.train()
-    # 这里的窗口使用了随机， 但是其实步进也可以
-    for step in range(1, 301):
-        # 随机起点，取连续 block_size+1 个 token，再拆成 x / y 
-        # randint生成一个(1,)的tensor，.item()转换为python的int
+    for step in range(1, 501):
         i = torch.randint(0, len(data) - block_size, (1,)).item()
         chunk = data[i : i + block_size + 1]
         x = chunk[:-1].unsqueeze(0)  # (1, block_size)
@@ -60,24 +65,40 @@ def main() -> None:
 
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
+        # 限制梯度不要太大，超过1的直接设置为1
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         optimizer.step()
 
         if step == 1 or step % 50 == 0:
             print(f"step {step:4d}  loss = {loss.item():.4f}")
 
+    # 保存 checkpoint
+    CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+    ckpt_path = CHECKPOINT_DIR / "tinylm.pt"
+    torch.save(
+        {
+            "model": model.state_dict(),
+            "config": {
+                "vocab_size": tok.vocab_size,
+                "n_embd": 64,
+                "block_size": block_size,
+                "n_head": 4,
+                "n_layer": 4,
+                "dropout": 0.1,
+            },
+            "tokenizer_chars": tok.chars,
+        },
+        ckpt_path,
+    )
+    print(f"saved: {ckpt_path}")
+
+    # temperature + top-k 采样生成
     model.eval()
     prompt = "User: 你好\nAssistant:"
     ctx = torch.tensor([tok.encode(prompt)], dtype=torch.long)
-    with torch.no_grad():
-        for _ in range(20):
-            # 生成时上下文也不能超过 block_size
-            idx_cond = ctx[:, -block_size:]
-            logits = model(idx_cond)[:, -1, :]
-            next_id = int(torch.argmax(logits, dim=-1).item())
-            ctx = torch.cat([ctx, torch.tensor([[next_id]])], dim=1)
-
+    out = model.generate(ctx, max_new_tokens=40, temperature=0.8, top_k=40)
     print("prompt :", repr(prompt))
-    print("gen    :", repr(tok.decode(ctx[0].tolist())))
+    print("gen    :", repr(tok.decode(out[0].tolist())))
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""TinyLM：token + position + Causal Self-Attention + lm_head。"""
+"""TinyLM：Embedding + N × Block(Attn+MLP) + lm_head。"""
 
 from __future__ import annotations
 
@@ -17,60 +17,88 @@ from tokenizer import CharTokenizer  # noqa: E402
 
 
 class CausalSelfAttention(nn.Module):
-    """因果自注意力：位置 t 只能看 0..t，不能看未来。
+    """因果自注意力：位置 t 只能看 0..t。"""
 
-    先按单头理解；n_head>1 时只是把 n_embd 切开并行算几份再拼回去。
-    """
-
-    def __init__(self, n_embd: int, n_head: int, block_size: int) -> None:
+    def __init__(
+        self,
+        n_embd: int,
+        n_head: int,
+        block_size: int,
+        dropout: float = 0.0,
+    ) -> None:
         super().__init__()
         assert n_embd % n_head == 0, "n_embd 必须能被 n_head 整除"
         self.n_head = n_head
         self.n_embd = n_embd
-        self.head_dim = n_embd // n_head  # 每个头的维度
+        self.head_dim = n_embd // n_head
 
-        # 一次线性层同时得到 Q、K、V，输出长度是 3 * n_embd
         self.c_attn = nn.Linear(n_embd, 3 * n_embd)
-        # 注意力输出后再投影回 n_embd
         self.c_proj = nn.Linear(n_embd, n_embd)
+        self.attn_drop = nn.Dropout(dropout)
+        self.resid_drop = nn.Dropout(dropout)
 
-        # 下三角 mask：1 表示「可以看」，0 表示「不能看」（未来）
-        # 形状 (1, 1, block_size, block_size)，后面按 T 切片
         mask = torch.tril(torch.ones(block_size, block_size))
-        # 加两维兼容批量处理和多头
         self.register_buffer("mask", mask.view(1, 1, block_size, block_size))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # x: (B, T, C)  C = n_embd
         B, T, C = x.shape
 
-        # 1) 线性得到 QKV，再拆成三份
-        qkv = self.c_attn(x)  # (B, T, 3*C)
-        q, k, v = qkv.split(self.n_embd, dim=2)  # 各 (B, T, C)
-
-        # 2) 改成多头形状: (B, n_head, T, head_dim)
+        qkv = self.c_attn(x)
+        q, k, v = qkv.split(self.n_embd, dim=2)
         q = q.view(B, T, self.n_head, self.head_dim).transpose(1, 2)
         k = k.view(B, T, self.n_head, self.head_dim).transpose(1, 2)
         v = v.view(B, T, self.n_head, self.head_dim).transpose(1, 2)
 
-        # 3) 注意力分数: QK^T / sqrt(d)
-        #    (B, n_head, T, head_dim) @ (B, n_head, head_dim, T)
-        #    → (B, n_head, T, T)
-        # 这里用矩阵乘法加转置实现了一个 向量的点积
         att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(self.head_dim))
-
-        # 4) 因果 mask：未来位置填 -inf，softmax 后变成 0
         att = att.masked_fill(self.mask[:, :, :T, :T] == 0, float("-inf"))
-        att = F.softmax(att, dim=-1)  # 对「看谁」那一维做 softmax
+        att = F.softmax(att, dim=-1)
+        att = self.attn_drop(att)
 
-        # 5) 用注意力权重对 V 加权求和 → (B, n_head, T, head_dim)
         y = att @ v
-
-        # 6) 拼回 (B, T, C)，再投影
         y = y.transpose(1, 2).contiguous().view(B, T, C)
-        # 此时的y的向量： 字：[...语义上的v, ...语法上的v, ...,四个头]， 要经过一个全连接混在一起。但是混在一起不等于白干了。 
-        # 可以想象为四个编辑分别写了一段， 隐藏层相当于主编， 经过训练后主编可以完美的组合这四个编辑的片段。
-        return self.c_proj(y)
+        return self.resid_drop(self.c_proj(y))
+
+
+class MLP(nn.Module):
+    """位置级前馈网络：每个字的向量独立过同一套 Linear→GELU→Linear。
+
+    Attention 负责「和谁交互」；MLP 负责「在当前位置上做非线性变换」。
+    中间通常扩到 4 * n_embd。
+    """
+
+    def __init__(self, n_embd: int, dropout: float = 0.0) -> None:
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(n_embd, 4 * n_embd),
+            nn.GELU(),
+            nn.Linear(4 * n_embd, n_embd),
+            nn.Dropout(dropout),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.net(x)
+
+
+class Block(nn.Module):
+    """一层 Transformer：Pre-LN + Attn 残差 + Pre-LN + MLP 残差。"""
+
+    def __init__(
+        self,
+        n_embd: int,
+        n_head: int,
+        block_size: int,
+        dropout: float = 0.0,
+    ) -> None:
+        super().__init__()
+        self.ln1 = nn.LayerNorm(n_embd)
+        self.attn = CausalSelfAttention(n_embd, n_head, block_size, dropout)
+        self.ln2 = nn.LayerNorm(n_embd)
+        self.mlp = MLP(n_embd, dropout)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = x + self.attn(self.ln1(x))
+        x = x + self.mlp(self.ln2(x))
+        return x
 
 
 class TinyLM(nn.Module):
@@ -80,18 +108,26 @@ class TinyLM(nn.Module):
         n_embd: int = 64,
         block_size: int = 32,
         n_head: int = 4,
+        n_layer: int = 4,
+        dropout: float = 0.0,
     ) -> None:
         super().__init__()
         self.block_size = block_size
         self.token_emb = nn.Embedding(vocab_size, n_embd)
         self.pos_emb = nn.Embedding(block_size, n_embd)
-        # 注意力前做 LayerNorm，训练更稳
-        self.ln = nn.LayerNorm(n_embd)
-        self.attn = CausalSelfAttention(n_embd, n_head, block_size)
-        self.lm_head = nn.Linear(n_embd, vocab_size)
+        self.drop = nn.Dropout(dropout)
+        self.blocks = nn.ModuleList(
+            [
+                Block(n_embd, n_head, block_size, dropout)
+                for _ in range(n_layer)
+            ]
+        )
+        self.ln_f = nn.LayerNorm(n_embd)
+        self.lm_head = nn.Linear(n_embd, vocab_size, bias=False)
+        # 词嵌入与输出层共用权重（常见小技巧）
+        self.lm_head.weight = self.token_emb.weight
 
     def forward(self, idx: torch.Tensor) -> torch.Tensor:
-        # idx: (B, T)
         T = idx.shape[-1]
         if T > self.block_size:
             raise ValueError(
@@ -99,19 +135,47 @@ class TinyLM(nn.Module):
             )
 
         pos = torch.arange(T, device=idx.device)
-        x = self.token_emb(idx) + self.pos_emb(pos)  # (B, T, n_embd)
+        x = self.drop(self.token_emb(idx) + self.pos_emb(pos))
 
-        # 残差连接：x + Attention(LayerNorm(x))
-        # 位置 t 现在能「看」到前面的上下文了  +x防止自身内容丢失
-        x = x + self.attn(self.ln(x))
-        # 最后经过一个全连接，输入 当前词及上文信息， 输出 当前词下一个词的概率
-        logits = self.lm_head(x)  # (B, T, vocab_size)
+        for block in self.blocks:
+            x = block(x)
+
+        x = self.ln_f(x)
+        logits = self.lm_head(x)
         return logits
+
+    @torch.no_grad()
+    def generate(
+        self,
+        idx: torch.Tensor,
+        max_new_tokens: int,
+        temperature: float = 1.0,
+        top_k: int | None = None,
+    ) -> torch.Tensor:
+        """自回归生成。idx: (B, T) → (B, T + max_new_tokens)。"""
+        for _ in range(max_new_tokens):
+            idx_cond = idx[:, -self.block_size :]
+            logits = self(idx_cond)[:, -1, :] / max(temperature, 1e-8)
+            if top_k is not None:
+                v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
+                logits[logits < v[:, [-1]]] = float("-inf")
+            probs = F.softmax(logits, dim=-1)
+            next_id = torch.multinomial(probs, num_samples=1)
+            idx = torch.cat([idx, next_id], dim=1)
+        return idx
 
 
 if __name__ == "__main__":
     tok = CharTokenizer.load()
-    model = TinyLM(vocab_size=tok.vocab_size, n_embd=64, block_size=32, n_head=4)
+    model = TinyLM(
+        vocab_size=tok.vocab_size,
+        n_embd=64,
+        block_size=32,
+        n_head=4,
+        n_layer=4,
+    )
     ids = torch.tensor([tok.encode("你好")], dtype=torch.long)
     print("logits shape:", model(ids).shape)
+    n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"params: {n_params:,}")
     print(model)
