@@ -96,7 +96,9 @@ class Block(nn.Module):
         self.mlp = MLP(n_embd, dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # 残差连接让参数获取上文信息
         x = x + self.attn(self.ln1(x))
+        # 再次残差连接增强非线性能力，这是transformer的常见做法
         x = x + self.mlp(self.ln2(x))
         return x
 
