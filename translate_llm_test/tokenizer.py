@@ -14,8 +14,11 @@ class TinyBilingualTokenizer:
     def __init__(self) -> None:
         self.itos = self.SPECIAL + self.CHARS + self.WORDS
         self.stoi = {t: i for i, t in enumerate(self.itos)}
+        # 用于补齐不同长度的句子，本身没语义
         self.pad_id = self.stoi["<pad>"]
+        # 用于表示句子的开始，输入的第一个词是bos
         self.bos_id = self.stoi["<bos>"]
+        # 用于表示句子的结束，模型遇到它就停止生成
         self.eos_id = self.stoi["<eos>"]
 
     @property

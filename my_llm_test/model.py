@@ -154,7 +154,7 @@ class TinyLM(nn.Module):
         temperature: float = 1.0,
         top_k: int | None = None,
     ) -> torch.Tensor:
-        """自回归生成。idx: (B, T) → (B, T + max_new_tokens)。"""
+        """自回归生成。idx: (B, T) → (B, T + max_new_tokens)。"""   
         for _ in range(max_new_tokens):
             idx_cond = idx[:, -self.block_size :]
             logits = self(idx_cond)[:, -1, :] / max(temperature, 1e-8)
